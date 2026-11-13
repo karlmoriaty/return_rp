@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 — 2026-11-13
+
+- 原生中继器支持 RP 11：按目标文件的文件头版本选择本机 `Default.rplib`（RP 9 / RP 11 的 Repeater 结构等价），克隆、数据模型与行模板装配走同一套代码；RP 11 不再在写入前报错。
+- 能力矩阵将 `native-repeater` 的 RP 11 状态提升为 `supported`，从 `DOCUMENTED_GAPS` 与诊断证据中移除对应条目。
+- 新增 `test/native-repeater-versions-check.mjs`（`npm run test:repeater-versions`）：同一份 RP/1 模型分别构建 RP 9 与 RP 11，校验文件头版本、3 列 3 行数据与三零结构；缺少本机 Axure / Pillow 时输出 SKIP，不影响公开 CI。
+- 文档同步：能力矩阵、缺口台账与 RP/1 生成资源说明改为按目标版本取安装资源；RP/1 JSON Schema 的 `target` 同步为 `9 | 11`。
+
 ## 1.2.0 — 2026-11-13
 
 - 版本能力矩阵改为双向对齐（`SYMMETRIC_PARITY`）：任一版本已支持的能力，另一版本不能再是 `unsupported`；新增 `partial` 状态与 `DOCUMENTED_GAPS` 缺口台账，测试同时校验矩阵、台账与源码中的诊断文案。

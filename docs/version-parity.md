@@ -20,7 +20,7 @@
 | 面板注册链修复 | supported | not-applicable | RP 11 没有该注册模型 |
 | 原生表单控件克隆 | supported | supported | 控件、文字与几何 |
 | 原生表单状态样式 | supported | partial | RP 11 的 `Axure:Style` 结构不同，暂跳过并告警 |
-| 原生中继器 | supported | explicit-diagnostic | 当前只克隆 RP 9 `Default.rplib` 的 Repeater |
+| 原生中继器 | supported | supported | RP 9 / RP 11 各取本机 `Default.rplib` 中结构等价的 Repeater |
 | 自适应视图 | supported | supported | RP 9 不写 `Cursor` 字段 |
 | 核心交互与动作 | supported | supported | 同名不同型的字段按版本转换 |
 | 中继器数据操作 | supported | supported | 排序、过滤、增删改 |
@@ -46,7 +46,6 @@
 | :--- | :--- | :--- |
 | 面板注册链修复 @ RP 11 | not-applicable | RP 11 没有 `DynamicPanelInfo` / `PanelDiagramInfo` |
 | 表单状态样式 @ RP 11 | partial | `Axure:Style` 结构未接通，跳过并告警 |
-| 原生中继器 @ RP 11 | explicit-diagnostic | 只从 RP 9 `Default.rplib` 克隆 Repeater |
 | 自动预览 @ RP 11 | partial | 仅 macOS，RP 11 目标尚未端到端验证 |
 | 图片离线生成 @ RP 11 | gui-only | 目前走 `axvg` GUI 粘贴 |
 | 缩放锚点 / 切换启用 / 应用样式 / RP 11 事件与函数 / 三个中继器键 @ RP 9 | explicit-diagnostic | RP 9 原生结构或运行时没有对应模型 |
@@ -55,6 +54,7 @@
 
 ```sh
 node test/version-parity-check.mjs
+node test/native-repeater-versions-check.mjs   # 需本机 Axure 安装与 Python Pillow，缺依赖时 SKIP
 ```
 
 测试会检查：

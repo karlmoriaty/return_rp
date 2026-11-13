@@ -8,9 +8,12 @@ import { installRoot, detectFileVersion } from './version.mjs';
 
 // Only the native Repeater shell/style comes from the installed library.
 // Its example rows, events and row widgets are replaced before cloning.
+// RP 9 and RP 11 ship structurally equivalent Repeaters; each target must clone
+// from its own installed library so version-specific keys stay consistent.
 export function createNativeRepeater(file, rowFile, plan) {
-  if (detectFileVersion(file) !== 9) throw new Error('Native Repeater requires RP 9');
-  const library = readFileSync(join(installRoot(9), 'Libraries/Default.rplib'));
+  const version = detectFileVersion(file);
+  if (version !== 9 && version !== 11) throw new Error(`Native Repeater requires RP 9 or 11, got ${version}`);
+  const library = readFileSync(join(installRoot(version), 'Libraries/Default.rplib'));
   let sourceRecord, sourceGraph, repeater;
   for (const record of readRecords(library).filter(r => r.className === 'Axure:Page')) {
     const graph = parsePayload(record);
@@ -35,7 +38,7 @@ export function createNativeRepeater(file, rowFile, plan) {
   const list = items => ({ tag: 2, items });
   const map = obj => ({ tag: 1, entries: Object.entries(obj).map(([k,v]) => [str(k),v]) });
   const newId = () => { guids.push(randomBytes(16).toString('hex')); return guids.length; };
-  const cloned = cloneInto({ version: 9, srcGraph: sourceGraph, srcStrings: sourceRecord.strings, dstGraph: graph, dstStrings: strings, closure: closureOf(sourceGraph, repeater.id), rootOldId: repeater.id });
+  const cloned = cloneInto({ version, srcGraph: sourceGraph, srcStrings: sourceRecord.strings, dstGraph: graph, dstStrings: strings, closure: closureOf(sourceGraph, repeater.id), rootOldId: repeater.id });
   const rep = graph.objects.get(cloned.rootNewId), created = [...cloned.created];
   const row = graph.objects.get(field(rep.body, 'BaseDiagram').value), data = graph.objects.get(field(rep.body, 'Data').value);
   Object.assign(field(field(rep.body, 'name-block'), 'text'), str(plan.name));
@@ -78,7 +81,7 @@ export function createNativeRepeater(file, rowFile, plan) {
   const rowDiagram = rowGraph.objects.get(field(rowPage.body,'diagram').value);
   const roots = field(rowDiagram.body,'diagram-objects').items;
   const closure = new Set(roots.flatMap(n => [...closureOf(rowGraph,n.value)]));
-  const content = cloneInto({ version:9, srcGraph:rowGraph, srcStrings:rowRecord.strings, dstGraph:graph, dstStrings:strings, closure, rootOldId:roots[0]?.value });
+  const content = cloneInto({ version, srcGraph:rowGraph, srcStrings:rowRecord.strings, dstGraph:graph, dstStrings:strings, closure, rootOldId:roots[0]?.value });
   field(row.body,'diagram-objects').items = roots.map(n => ref(content.idMap.get(n.value)));
   created.push(...content.created);
   for (const object of [...cloned.created,...content.created]) walkNodes([object.body], n => {

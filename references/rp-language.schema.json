@@ -11,7 +11,10 @@
       "const": "rp/1"
     },
     "target": {
-      "const": 9
+      "enum": [
+        9,
+        11
+      ]
     },
     "name": {
       "type": "string"
