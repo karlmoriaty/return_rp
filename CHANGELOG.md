@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- 归档整理文档：8 份带日期的历史记录移入 `docs/history/` 并建立索引；`HANDOFF.md` 与 `DELIVERY.md` 合并为 `docs/history/handoff.md`，两份 10 月试用报告合并为 `docs/history/trial-reports-2026-10.md`；同步修正引用链接、`package.json` 发布清单与 `release-manifest.json`。当前技术文档不变。
+
 ## 1.1.2 — 2026-11-13
 
 - 项目统一更名为 `return_rp`：包名、命令名、文档与素材引用全部替换；原作者 / 维护者署名为 karlmoriaty，问题反馈邮箱 3070687583@qq.com。

@@ -213,7 +213,7 @@
 - 反 slop 规则：`equal-card-grid`、`purple-gradient`、`vague-centered-hero`、`icon-in-rounded-square`、`hero-without-media`、`over-rounded`
 - **不返回审美总分**，只给 `meets-l1-bar / below-l1-bar` 与逐条改法
 
-阈值见 `docs/free-canvas-design-ceiling.md` §1。
+阈值见 `docs/history/free-canvas-design-ceiling.md` §1。
 
 ## 第三轮：打通两条线 + 度量层收敛
 
@@ -780,7 +780,7 @@ note 改为明说**"本投影独立于导出器，可能与导出报告不完全
 
 ### 交付物
 
-新增 `docs/design-tools-trial-report.md`：7 轮试用分数轨迹、四类反复出现的问题、逐轮结构性修复、仍未解的能力缺口、当前可验证状态。
+新增 `docs/history/trial-reports-2026-10.md`：7 轮试用分数轨迹、四类反复出现的问题、逐轮结构性修复、仍未解的能力缺口、当前可验证状态。
 
 ### 回归
 
@@ -967,7 +967,7 @@ after : type-scale（唯一剩下的，属内容层问题）
 - **能当**：几何与可达性 CI 门禁（越界/栅格/热区/空态/主次失衡/导出预算），且"绿"必须经得起攻击测试
 - **不能当**：设计评审签字——L1 是底线，不证明"设计成立"
 
-试用者原话：「这块绿只能证明页面有标题、没有裸露的 20px 按钮」。这句话我接受，并写进 `design-tools-trial-report.md` 的结论。
+试用者原话：「这块绿只能证明页面有标题、没有裸露的 20px 按钮」。这句话我接受，并写进 `docs/history/trial-reports-2026-10.md` 的结论。
 
 ## 第二十七轮：堵住"检查蒸发"与 alpha/opacity/软连字符（6.0/10 后）
 

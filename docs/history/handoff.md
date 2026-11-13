@@ -1,16 +1,96 @@
-# 交接文档：zee-axure 设计质量层（Studio / RP-1）
+# 交接与交付记录：设计质量层（Studio / RP-1）
 
-**2026-11-03 公开源码更新：** 本批包含Studio交互/主题/导入、原生多页批量装配与阶段进度、tab-bar对齐和GUI失败清理等修复。使用入口见[Studio与AI创作指南](studio-ai-authoring.md)；适用边界保留，下方记录为对应样本的实现与验证历史。
+> **归档文件。** 由 `docs/HANDOFF.md` 与 `docs/DELIVERY.md` 合并而来，保留 2026-10-25 至 2026-11-03 的交付索引、进度记录与原始交接。文中的分数、测试数与能力结论只对各自记录的样本和时间点成立；其中的本机路径（`/Users/...`、`~/.zcode/...`、`outputs/...`）是当时的证据位置，不随仓库分发。当前能力以 [RP 9 / RP 11 能力对齐](../version-parity.md) 与 [能力表](../../references/capabilities.md) 为准。
+
+## 交付清单（2026-10-27）
+
+> 本文件是这条线的交付索引：做了什么、怎么验证、怎么回退、边界在哪。
+
+### 一、交付物
+
+| 类别 | 文件 | 说明 |
+|---|---|---|
+| 能力边界 | `docs/history/free-canvas-design-ceiling.md` | 五层能力模型（L1 指标 / 反 slop / 锚点 / 探索 / 导出预算）+ 明确的"不做什么" |
+| 试用报告 | `docs/history/trial-reports-2026-10.md` | 14 轮外部试用分数轨迹与判词 |
+| 缺陷台账 | `docs/history/agent-trial-findings-2026-10-27.md` | 30 轮逐条记录：问题、根因、修法、回归 |
+| 度量层 | `studio/design-metrics.mjs` | 11 项固定清单、固定分母对账、有效不透明度、Cf 归一 |
+| 探索层 | `studio/explore.mjs` | 参数轴 + 结构轴、连续目标、硬回归淘汰 |
+| 锚点层 | `studio/anchors.mjs` | 配方提炼、参照系对比、方向建议 |
+| 修复计划 | `studio/fix-plan.mjs` | 确定性处方 + 服务端试跑自证 |
+| 内容脚手架 | `studio/content-plan.mjs` | 空态/口号标题的槽位与模板 |
+| 回归 | `test/studio-*.mjs`（5 套件）+ `test/rp1-*.mjs` | 含 `anti-gaming` 13 组攻击面断言 |
+
+### 二、怎么验证
+
+```bash
+cd ~/.zcode/skills/zee-axure
+npm test                      # 18 条，含 5 个 studio 套件
+npm run test:studio-anti-gaming   # 13 组"刷绿"攻击面
+npm run test:studio-metrics       # 度量口径与关系约束
+npm run test:studio-fix-plan      # 处方自证
+npm run test:studio-content       # 内容脚手架
+npm run test:studio-consistency   # 三工具一致性
+```
+
+### 三、定位（外部试用者给的原话）
+
+> 按「设计期的对抗性体检 + 几何/可达性门禁」交付，别按「可挂 CI 的验收门」交付。
+
+**能当**：几何门禁（越界 / 栅格 / 热区）、可达性门禁（空态覆盖 / 对比度）、对抗性体检（能防止用元数据刷绿）。
+
+**不能当**：设计评审签字。L1 是底线，不证明"设计成立"。文案质量、信息架构、素材选择不在能力范围内。
+
+### 四、关键设计原则（写进代码的）
+
+1. **不可评估 = 不通过**。缺项显式 `notAssessable` 红项，不允许从 `checks` 里蒸发；`expected / counted / notAssessable` 必须对账。
+2. **绿必须经得起攻击**。`test:studio-anti-gaming` 覆盖 13 条已知伪造路径（零宽字符、软连字符、alpha 1/255、opacity:0、透明文字、wrapper 拆分、检查蒸发、对比度跳过等）。
+3. **处方必须自证**。`fix_plan` 在文档副本上试跑自己的命令，整页阻塞项不严格减少就不下发，并给出 `unfixable` 原因。
+4. **红必须点得开**。每条失败都带 nodeId 与比值；`contrast.unknownNodes` 不再是"N 处"。
+5. **不假装**。导出预算与真实导出可能不一致时标 `uncertain`；内容脚手架只给槽位，不假装会写文案。
+
+### 五、回退
+
+- 快照：`~/Downloads/test_1/_backup/zee-axure-rsi-r30…r32-*`（每轮一份，共 30+）
+- 原始备份与 tag：`rsi-backup-20261027-010431`
+- 回退命令：
+  ```bash
+  rm -rf ~/.zcode/skills/zee-axure
+  cp -a <某个快照> ~/.zcode/skills/zee-axure
+  ```
+
+### 六、已知遗留
+
+1. **`studio/` 未纳入 git**（`git ls-files studio` 为 0）。CI 即便配置 `npm test` 也拿不到这些代码——需要仓库策略决定，未擅自 `git add`。
+2. **type-scale 的多数问题修不动**：只能调整最大正文那一级，真实阶梯问题属内容层级。
+3. **`hero-without-media` 仍是 warn**：它需要判断"该不该有图"，属设计意图。
+4. **渲染层未实现命中区**：`hitW/hitH` 会被度量忽略（宁可红着，不假绿），`fix_plan` 把它列为人工项。
+
+### 七、版本库状态（已入库）
+
+分支 `studio-design-quality`，提交 `6b3cd33`：
+
+- `studio/` 33 个文件（此前 `git ls-files studio` 为 0，CI 看不到被测代码）
+- `test/studio-*.mjs` 12 个套件 + `test/rp1-repeater-where-check.mjs`
+- `docs/`：能力边界、试用报告、缺陷台账、交付索引
+- `package.json`：studio 相关脚本（同时带上了此前未提交的脚本条目）
+
+提交后 `npm test` 仍 18/18。**工作区里剩下的 96 个改动属于你之前的未提交工作，未触碰。**
+
+合并回 main：`git checkout main && git merge studio-design-quality`。
+
+## 交接记录（2026-10-27 — 2026-11-03）
+
+**2026-11-03 公开源码更新：** 本批包含Studio交互/主题/导入、原生多页批量装配与阶段进度、tab-bar对齐和GUI失败清理等修复。使用入口见[Studio与AI创作指南](../studio-ai-authoring.md)；适用边界保留，下方记录为对应样本的实现与验证历史。
 
 **2026-11-03 Studio 交互审计落地（实现与验证记录）：** 复现并修复透明交互叶节点抢设计态点选、微抖动误拖（4 CSS px死区）、告警挤占属性栏（默认折叠）与大型/多画板适配（按实际面板净空和全部画板边界）。透明热区预览点击及图层选取保留；Shift可在嵌套容器/锁定背景内框选。新增Option悬停测距、常用缩放档位、一键100%和全部画板适配。多页按视口装载相邻内容、保留当前页，低缩放简化邻页；20页1000图元样例近景DOM<200且平移后可直接激活最后一页。原始栖羽副本真实点选/双击、6px测距/松键清除、六板净空适配通过，revision保持1；定向54/54含编辑、剪贴板、布局、RP/1、像素和规模回归通过。任意小数缩放的字体锐度仍受浏览器栅格化影响；未新增R-tree、单页海量节点裁剪或通用FPS保证。证据：本机 `outputs/studio-interaction-audit-20261103/REPORT.md`。旧画室刷新前端；MCP旧指纹需重连。
 
 **2026-11-03 Studio 手机壳导入与主题修复（实现与验证记录）：** 已复现原 `.rp1` 两张卡片同为(0,0)，并补齐导入 phone-shell 的 column、gap=12、顶部60/左右16/底部20安全留白与$bg默认值；显式 stack/padding=0/gap=0/fill 保留，空白画布的既有自由布局显式固定。解析器在测量前统一 phone-shell 默认布局。Studio 新增与原生 modern-dark 对齐的色板；画板背景、默认文字与单侧边框消费主题变量，palette 与颜色token合并。额外复现并修复小规模改色被局部DOM更新遗漏画板变量的问题，换色触发完整绘制。原复现设计态/预览态背景#0B0F17、文字#F8FAFC、卡片间距12px；浅色/自定义/深色连续切换通过。定向23/23（含真实浏览器、编辑/恢复与原生网格出口），新stdio公开studio_open_project导入与指纹一致通过。本轮范围为Studio导入/渲染，不将手机壳所有附属宏与Python编译器宣称全量等价。证据：`outputs/studio-phone-theme-20261103/REPORT.md`。旧服务需重启/重连后加载JS；不改旧项目存稿。
 
-**2026-11-03 规模写路径修复（实现与验证记录）：** CPU profile确认热点是交互绑定反复解压/解析全项目记录。现复用装配内reader与页面上下文，按脏记录一次提交；输入Buffer不变、失败批次不可提交，独立add_interaction语义保留。4页44组绑定10.193秒→0.078秒；原始big-app.rp1（SHA7e4958...、78,547字节、40页2040元件）源SHA和semanticHash与旧基线一致，新stdio strictAudit生成27.763秒，重放原三项改稿32.810秒，改稿事件441/441、原新影响符号集合一致、三零通过。旧23分29秒/20分20秒引用用户试用报告，不冒充本轮重新测得旧版。原始改稿副本RP9保存关闭重开发布13.949秒通过，真实浏览器验证变量/备注/百分比、跳页、模块17新增项/标题及改色。generate/revise异步回包新增compile/assemble-pages/merge-pages/bind-interactions/validate-native阶段及progress计数，完整三零与基线继续执行。计划体积在同结构4→40页中2.52MB→24.01MB，近线性，未因此删审计。此前GUI清理与离线对齐修复已复检：jobs13/13、polish9/9；实际实现不都在mcp-tools。用法：[装配与进度](../references/rp-language.md#后端与验证范围)。详细证据在本机outputs/studio-write-performance-20261103/REPORT.md。本轮没有运行模型批量评测或新增评分；旧MCP连接需重连加载JS。
+**2026-11-03 规模写路径修复（实现与验证记录）：** CPU profile确认热点是交互绑定反复解压/解析全项目记录。现复用装配内reader与页面上下文，按脏记录一次提交；输入Buffer不变、失败批次不可提交，独立add_interaction语义保留。4页44组绑定10.193秒→0.078秒；原始big-app.rp1（SHA7e4958...、78,547字节、40页2040元件）源SHA和semanticHash与旧基线一致，新stdio strictAudit生成27.763秒，重放原三项改稿32.810秒，改稿事件441/441、原新影响符号集合一致、三零通过。旧23分29秒/20分20秒引用用户试用报告，不冒充本轮重新测得旧版。原始改稿副本RP9保存关闭重开发布13.949秒通过，真实浏览器验证变量/备注/百分比、跳页、模块17新增项/标题及改色。generate/revise异步回包新增compile/assemble-pages/merge-pages/bind-interactions/validate-native阶段及progress计数，完整三零与基线继续执行。计划体积在同结构4→40页中2.52MB→24.01MB，近线性，未因此删审计。此前GUI清理与离线对齐修复已复检：jobs13/13、polish9/9；实际实现不都在mcp-tools。用法：[装配与进度](../../references/rp-language.md#后端与验证范围)。详细证据在本机outputs/studio-write-performance-20261103/REPORT.md。本轮没有运行模型批量评测或新增评分；旧MCP连接需重连加载JS。
 
-**2026-11-03 AI 试用报告两项本地修复：** tab-bar 未激活项偏上的根因是按钮居中错误依赖填充/描边；现为 button/badge 独立写入垂直居中。RP9 常量核实：`PName.VERTICAL_ALIGNMENT=10`，显式DOAName `3221225482`（tag5 Int32），Top/Center/Bottom=0/1/2。两页56元件保存关闭重开，四项属性均为1；真实切页返回文字框中心偏移由−10.75px修至0px。离线渲染消费显式对齐，新增检查原生场景的`button_text_alignment_ok`，不再只凭拼图。GUI打开未就绪时有界重投一次；早期失败仅清理本任务原样副本，已打开/变更/替换的文件保留，EEXIST提示路径与处理方式。偶发首开失败本次未稳定重现，故障注入验证清理与同参重试，真实保存关闭重开发布另验。定向：视觉9/9、队列13/13、原生后端32/32、创作10+11、语言51/51通过。已修改本机canonical目录，本轮未提交/推送；旧MCP进程须重连才能加载JS改动。详情：[垂直对齐](../references/rp-format-research.md)、[GUI故障处理](../references/troubleshooting.md)。
+**2026-11-03 AI 试用报告两项本地修复：** tab-bar 未激活项偏上的根因是按钮居中错误依赖填充/描边；现为 button/badge 独立写入垂直居中。RP9 常量核实：`PName.VERTICAL_ALIGNMENT=10`，显式DOAName `3221225482`（tag5 Int32），Top/Center/Bottom=0/1/2。两页56元件保存关闭重开，四项属性均为1；真实切页返回文字框中心偏移由−10.75px修至0px。离线渲染消费显式对齐，新增检查原生场景的`button_text_alignment_ok`，不再只凭拼图。GUI打开未就绪时有界重投一次；早期失败仅清理本任务原样副本，已打开/变更/替换的文件保留，EEXIST提示路径与处理方式。偶发首开失败本次未稳定重现，故障注入验证清理与同参重试，真实保存关闭重开发布另验。定向：视觉9/9、队列13/13、原生后端32/32、创作10+11、语言51/51通过。已修改本机canonical目录，本轮未提交/推送；旧MCP进程须重连才能加载JS改动。详情：[垂直对齐](../../references/rp-format-research.md)、[GUI故障处理](../../references/troubleshooting.md)。
 
-**2026-11-02 REA 旋转逆向、原生出口与 AI 交互优化：** 复用项目 REA + oracle 方法核对 RP9 TextBox 能力位、MoveBehavior 枚举和安装包运行时，确认静态 Rotation 能力位关闭，但原生居中旋转动作可用。完整 RP/1 与 Studio 现在保留输入框角度，并生成元件 OnLoad 绝对旋转动作；最终 2 页 49 元件文件保存关闭重开后，25°/−30°/0°、真实输入联动与跳页返回均通过，编辑器仍不提供 TextBox 静态旋转。跨页 set-text 对普通文字元件自动保存原生状态并在目标页恢复；三词学习样本 2 页 69 元件，真实原生点击完成三题→完成页→重新开始，卡片子项坐标二次展开已修，21 个对照节点最大几何误差 0px。AI 写时校验补齐条件语法/类型/变量、统一条件别名，运行态支持共享文本函数并保留引号字面量；场景回包提供分支实际值，公开帮助包含可执行三词例子。回归：AI 143/143、后续修复45/45、定向24/24、语言51/51、契约2/2、原生表单12+7通过。契约通过使用具备 jsonschema 的 Python；另一个本机 Python 缺依赖的原始失败保留。本轮未运行模型批量评测，不新增独立 AI 成功率或审美评分。详细机制见 [RP9 旋转研究](../references/rp-format-research.md)，用法见 [AI 创作指南](studio-ai-authoring.md)。本段覆盖下方历史快照中的跨页改字/input rotation 限制，旧实测记录保留。
+**2026-11-02 REA 旋转逆向、原生出口与 AI 交互优化：** 复用项目 REA + oracle 方法核对 RP9 TextBox 能力位、MoveBehavior 枚举和安装包运行时，确认静态 Rotation 能力位关闭，但原生居中旋转动作可用。完整 RP/1 与 Studio 现在保留输入框角度，并生成元件 OnLoad 绝对旋转动作；最终 2 页 49 元件文件保存关闭重开后，25°/−30°/0°、真实输入联动与跳页返回均通过，编辑器仍不提供 TextBox 静态旋转。跨页 set-text 对普通文字元件自动保存原生状态并在目标页恢复；三词学习样本 2 页 69 元件，真实原生点击完成三题→完成页→重新开始，卡片子项坐标二次展开已修，21 个对照节点最大几何误差 0px。AI 写时校验补齐条件语法/类型/变量、统一条件别名，运行态支持共享文本函数并保留引号字面量；场景回包提供分支实际值，公开帮助包含可执行三词例子。回归：AI 143/143、后续修复45/45、定向24/24、语言51/51、契约2/2、原生表单12+7通过。契约通过使用具备 jsonschema 的 Python；另一个本机 Python 缺依赖的原始失败保留。本轮未运行模型批量评测，不新增独立 AI 成功率或审美评分。详细机制见 [RP9 旋转研究](../../references/rp-format-research.md)，用法见 [AI 创作指南](../studio-ai-authoring.md)。本段覆盖下方历史快照中的跨页改字/input rotation 限制，旧实测记录保留。
 
 **2026-11-02 Node18 安装与字体证据补充：** SDK 1.32.1 的间接 HTTP 依赖同时允许两个主版本，锁文件选中要求 Node20 的版本，导致 npm 在 Node18 静默省略整个可选SDK。现固定到SDK允许且兼容Node18的 `@hono/node-server@1.19.9`。工程字体在Linux仍保留明确的CoreText度量回退；携带测试验证字体文件存在、SHA与迁移完整性，不将度量回退误写成字体已加载。macOS字体像素专项保持原断言。
 
@@ -24,13 +104,11 @@
 
 > **2026-11-02 当前接续：** 用户已停止 48 次模型全量重跑，本轮按已有真实调用、截屏、语义与浏览器记录完成人工验收。T08 低层路线原始通过；RP/1 路线证据通过，旧结果仅被 `emptySelection=false` 验收器误杀，现已修并保留原始失败。T01 是真实流程失败，T02 未跑完只作视觉样本。旧 `16/16`、脚本式 `48/48` 与 `9.50/10` 不再作为本轮真实模型终验。入口：本机收口记录 `/Users/karlmoriaty/axure-exp/outputs/studio-finish-20261102/CLOSEOUT.md`，历史核查：`/Users/karlmoriaty/axure-exp/outputs/canvas-handoff-audit-20261102/REPORT.md`。
 
-
 **2026-10-31 独立审计后的修复正在收口（本机未发布）：** 下方 2026-10-30 的“16/16 全完成”报告已被独立反例推翻，不再作为当前验收结论。合并局部身份/删改丢失、工程字体、RP/1 类型契约与测试外部依赖已修复并复验；补修运行态同名目标隔离、改字重排及离线代码包相应尺寸更新。真实 AI 首轮预试保留 4/10 与失败，正在用实际独立模型试用替换旧脚本“48 次 AI 试用”。最终版本性能和正式对照未完成前，不恢复全完成声明。入口：独立审计（本机文件 `/Users/karlmoriaty/axure-exp/outputs/studio-claim-audit-20261030/AUDIT.md`）、本轮修复记录（本机文件 `/Users/karlmoriaty/axure-exp/outputs/studio-repairs-20261030/REPORT.md`）。
 
 **2026-10-30 自由画布（Studio）历史工作包验收（保留，不等同于本轮真实 AI 终验）：** 当时解决 `editing-handoff.tap`（19/20 → 21/21）父子混选拖动超时与受控 Chrome 启动卡顿，并完成除 Codex 插件外的 16 个工作包。报告中的 87 个 MCP 工具、55 个命令契约、282×25×4 消费矩阵、1k/5k/10k 性能与脚本式八题 48/48，是当轮结构与脚本口径；后续独立反例已经推翻其中的全完成表述，不能替代本轮 T01 真实失败、T02 未跑完和 T08 人工复核。详见 `/Users/karlmoriaty/axure-exp/outputs/studio-completion-20261030/COMPLETION-REPORT.md` 与 `QA-INDEPENDENT-REPORT.md`。
 
-**2026-10-30 原生表单新增入口：** 完整 RP/1 已支持 radio/checkbox/combobox（droplist）/listbox 与原生四态 styles。取值与重置、Selected/Checked、Enable/Disable/Focus 可直接编译；语法和边界见 [native-forms](../references/native-forms.md)。4页RP9保存重开后的原生预览38项通过，报告 `/Users/karlmoriaty/axure-exp/research-rp/native-forms-20261030/REPORT.md`。本机canonical已更新；现有MCP连接须重连，未公开发布。Studio局部入口不随本轮扩展。
-
+**2026-10-30 原生表单新增入口：** 完整 RP/1 已支持 radio/checkbox/combobox（droplist）/listbox 与原生四态 styles。取值与重置、Selected/Checked、Enable/Disable/Focus 可直接编译；语法和边界见 [native-forms](../../references/native-forms.md)。4页RP9保存重开后的原生预览38项通过，报告 `/Users/karlmoriaty/axure-exp/research-rp/native-forms-20261030/REPORT.md`。本机canonical已更新；现有MCP连接须重连，未公开发布。Studio局部入口不随本轮扩展。
 
 **2026-10-30 接手快照：** 本地补父子混选/剪切/快速粘贴、真实grid跨行列与独立间距、锚定/等高、布局切换保真和公开契约。源码AI92/92通过；最新编辑合集19/20，混选拖动超时未定位，不能用此前20/20或隔离通过代替。尚未重打包/新stdio或新增RP9 GUI验收。用户将自行把以/boost开头的prompt交给Ghostty agy，尚未派发。详细交接 `/Users/karlmoriaty/axure-exp/outputs/studio-completion-20261030/AGY-HANDOFF.md`；先修失败，再按原路线补全部非插件缺口，真实独立子代理验收后才能关闭。
 
@@ -40,12 +118,11 @@
 
 **2026-10-29 第二批本机验证推进（本地未发布）：** 命名版本/恢复预览、有界历史/检查点、共享选区、持久长操作/取消与统一问题定位已接入；500次编辑、两条14步GUI/新stdio链通过。新增按节点/字段/阶段/消费面发现与唯一行模板源，画布实际绘制并更新所有行；20项浏览器→RP9保存重开→原生预览试用通过。当前AI80/80、stdio7/7，新stdio83工具/24 Studio且指纹一致。266属性全矩阵、R01 GUI回填、完整连续编辑、规模/携带/合并、矢量、代码出口和最终对照仍未关闭；无整体领先或用户审美认可证明。本对话旧连接实查需重连，原4326/4502未动。证据 `/Users/karlmoriaty/axure-exp/outputs/studio-batch2-20261029/REPORT.md`；baoyu调研 `/Users/karlmoriaty/axure-exp/outputs/baoyu-design-review-20261029/REPORT.md`。
 
-**2026-10-29 第一批已落地、第二批持续推进：** 五套可编辑参考、六阶段上下文与工程设计决定已接入公开接口，参考6页359原生元件，7剧本70原生预览断言在RP9保存重开后通过。同brief三构图九张状态图已看图和实点；三类公开入口功能试用第三次调用写稿（熟悉调用者，非独立盲测）。当前53个命令/别名详细契约共用校验；266属性消费矩阵和后续工程项仍在推进。命名版本、恢复预览、可撤销恢复与历史窗口正在第二批验收，尚未关闭H01。完整进度见 `/Users/karlmoriaty/axure-exp/STUDIO-ROADMAP.md`，证据 `/Users/karlmoriaty/axure-exp/outputs/studio-batch1-20261028/REPORT.md`，公开用法 [阶段创作与决定](studio-stages.md)。未发布，旧4326和演示4502未动，旧连接须核对运行指纹。
-
+**2026-10-29 第一批已落地、第二批持续推进：** 五套可编辑参考、六阶段上下文与工程设计决定已接入公开接口，参考6页359原生元件，7剧本70原生预览断言在RP9保存重开后通过。同brief三构图九张状态图已看图和实点；三类公开入口功能试用第三次调用写稿（熟悉调用者，非独立盲测）。当前53个命令/别名详细契约共用校验；266属性消费矩阵和后续工程项仍在推进。命名版本、恢复预览、可撤销恢复与历史窗口正在第二批验收，尚未关闭H01。完整进度见 `/Users/karlmoriaty/axure-exp/STUDIO-ROADMAP.md`，证据 `/Users/karlmoriaty/axure-exp/outputs/studio-batch1-20261028/REPORT.md`，公开用法 [阶段创作与决定](../studio-stages.md)。未发布，旧4326和演示4502未动，旧连接须核对运行指纹。
 
 **2026-10-28 后续工作入口：** 用户已将除Codex插件外的前述改进纳入完整计划：`/Users/karlmoriaty/axure-exp/STUDIO-ROADMAP.md`。16个工作包覆盖设计、契约、RP/1、编辑、历史、性能、携带、并发、矢量、代码与对照；先固定基线并推进设计参考/阶段指导，逐包凭证据关闭。本次只是规划，不能把计划项写成已实现能力；当前事实仍以PROJECT-STATUS.md及能力表为准。
 
-**2026-10-28 自由画布 AI 创作闭环已扩展（本地未发布）：** 新增按需 `studio_describe`、语义源目标查询、RP/1局部insert/update，复用事务/撤销/恢复/原生导出；修复日志覆盖、丢包重发、后代ID粘贴、跳页/目标引用、面板与文字hug、字号120/非默认字体/spacer。两轮独立试用保留原始5/10与7/10评分，原调用者复测12次正常回包给8/10（非盲测）；第二轮自主RP/1创作两页378词原型，写入失败0、语义12步33断言与浏览器三态10断言通过，2页87原生元件、77源节点native-editable。第二轮仍暴露的按钮默认配色、浏览器契约、导出超时及native_ahead已继续修复；新stdio同稿导出约3秒正常回包、deep verify为in_sync；另修复长短画板切换的截图合成帧截断。34项AI专项、62项画布回归通过；最终两页另完成RP9保存关闭重开、原生预览14步35断言。81工具/22 Studio工具、129文件指纹；旧连接须重连，原4326未重启。无任意工程无损双向、跨平台、GUI手工编辑或用户审美认可证据，不能称全面超过OpenPencil。 [公开用法](studio-ai-authoring.md)，本地证据 `/Users/karlmoriaty/axure-exp/outputs/canvas-ai-moat-20261028/REPORT.md`。
+**2026-10-28 自由画布 AI 创作闭环已扩展（本地未发布）：** 新增按需 `studio_describe`、语义源目标查询、RP/1局部insert/update，复用事务/撤销/恢复/原生导出；修复日志覆盖、丢包重发、后代ID粘贴、跳页/目标引用、面板与文字hug、字号120/非默认字体/spacer。两轮独立试用保留原始5/10与7/10评分，原调用者复测12次正常回包给8/10（非盲测）；第二轮自主RP/1创作两页378词原型，写入失败0、语义12步33断言与浏览器三态10断言通过，2页87原生元件、77源节点native-editable。第二轮仍暴露的按钮默认配色、浏览器契约、导出超时及native_ahead已继续修复；新stdio同稿导出约3秒正常回包、deep verify为in_sync；另修复长短画板切换的截图合成帧截断。34项AI专项、62项画布回归通过；最终两页另完成RP9保存关闭重开、原生预览14步35断言。81工具/22 Studio工具、129文件指纹；旧连接须重连，原4326未重启。无任意工程无损双向、跨平台、GUI手工编辑或用户审美认可证据，不能称全面超过OpenPencil。 [公开用法](../studio-ai-authoring.md)，本地证据 `/Users/karlmoriaty/axure-exp/outputs/canvas-ai-moat-20261028/REPORT.md`。
 
 **2026-10-27 AI任意构图与多状态预演已落地（本机快照，未发布）：** 现有 `studio_design_explore` 接收AI自写 candidates/states，在隔离工程返回真实实点联系图，默认保护内容、事件与有效继承显隐；纯装饰显隐允许变化，看图后用选稿 applyWith 提交，源稿不变。修复隐藏后代泄漏、点击别名不一致、未知/零断言假通过和无中间断言的连续点击抢跑；公开schema与上下文补齐调用及padding坐标说明，Studio服务/前端纳入指纹。独立试用20次Studio调用完成三构图×三态，看图选稿并实点；最终1页46元件、27语义节点原生可编辑、三零，RP9保存重开和5次点击10条断言通过。相关回归64/64、核心18/18、stdio7/7、创作流程18/18。新stdio80工具/21个Studio工具、120文件指纹一致；旧连接需重连，原4326未重启。无GUI手工编辑/用户视觉认可，无RP/1同题效率A/B；更多构图探索的旧待办由本条覆盖。 见[调用与边界](studio-candidates-20261027.md)；证据 `/Users/karlmoriaty/axure-exp/outputs/canvas-ceiling-20261027/REPORT.md`。
 
@@ -68,7 +145,7 @@
 
 ---
 
-## 0. 三十秒版本
+### 0. 三十秒版本
 
 这个工具把「AI 画的设计稿」变成可判断、可修复、可交付的 Axure 原型。昨晚一整夜在做的是一条**质量判定链**：
 
@@ -88,9 +165,9 @@
 
 ---
 
-## 1. 昨晚具体做了什么
+### 1. 昨晚具体做了什么
 
-### 1.1 修完了一整批 P0/P1 缺陷（全部带回归）
+#### 1.1 修完了一整批 P0/P1 缺陷（全部带回归）
 
 | 编号 | 问题 | 修法 |
 |---|---|---|
@@ -105,7 +182,7 @@
 | A5 | 宏子节点回写产生非法属性 | 三层修复 + `test:macro-lift` |
 | C2 | 场景缺 `textAlign` 等字段 | 补齐投影 |
 
-### 1.2 建了「设计上限层」五根支柱
+#### 1.2 建了「设计上限层」五根支柱
 
 | 支柱 | 文件 | 能力 |
 |---|---|---|
@@ -115,12 +192,12 @@
 | 批量探索 | `studio/explore.mjs` | 参数轴（字阶/密度/圆角/配色）+ 结构轴（比例/主次），连续目标 + 硬回归淘汰 |
 | 导出预算 | `metrics.exportBudget` | 加性口径：每个节点可编辑基底 + 装饰层（栅格化/不确定/不支持） |
 
-### 1.3 建了「从诊断到开方」
+#### 1.3 建了「从诊断到开方」
 
 - `studio/fix-plan.mjs` + `studio_design_fix_plan`：只开确定性处方（网格吸附、补绑定空态、撑高文字回缩），**服务端试跑自己的命令**，整页阻塞项不严格减少就不下发，并给 `unfixable` 原因
 - `studio/content-plan.mjs` + `studio_design_content_plan`：空态/口号标题的槽位、模板、示例——**不假装会写文案**
 
-### 1.4 最后一小时：换成像素真值
+#### 1.4 最后一小时：换成像素真值
 
 - `studio/png-decode.mjs`：极简 PNG 解码（8 位、非隔行、RGB/RGBA）
 - `studio/pixel-truth.mjs`：按文字盒子取内缩边框环的**众数颜色**，用真实像素算对比度
@@ -136,7 +213,7 @@
 
 底色取样 `#7F7F7F`——正是 50% 黑压白的真实结果。**不依赖任何合成公式。**
 
-### 1.5 把 `studio/` 纳入 git
+#### 1.5 把 `studio/` 纳入 git
 
 之前 `git ls-files studio` 为 0，CI checkout 看不到被测代码。现在：
 
@@ -146,7 +223,7 @@
 
 ---
 
-## 2. 现在能跑什么
+### 2. 现在能跑什么
 
 ```bash
 cd ~/.zcode/skills/zee-axure
@@ -165,7 +242,7 @@ MCP 工具（`studio_design_*`）：`metrics` / `explore` / `anchors` / `fix_pla
 
 ---
 
-## 3. 核心设计原则（都写进代码了，别改坏）
+### 3. 核心设计原则（都写进代码了，别改坏）
 
 1. **不可评估 = 不通过**
    缺项显式 `notAssessable` 红项，不许从 `checks` 蒸发；`expected / counted / notAssessed` 必须对账。
@@ -185,7 +262,7 @@ MCP 工具（`studio_design_*`）：`metrics` / `explore` / `anchors` / `fix_pla
 
 ---
 
-## 4. 现状的真实水平（别被高分误导）
+### 4. 现状的真实水平（别被高分误导）
 
 外部试用者最后一轮给 **6.5**，判词：
 
@@ -214,9 +291,9 @@ MCP 工具（`studio_design_*`）：`metrics` / `explore` / `anchors` / `fix_pla
 
 ---
 
-## 5. 接下来怎么干（按优先级）
+### 5. 接下来怎么干（按优先级）
 
-### P0：把像素真值变成默认（最该做的一件事）
+#### P0：把像素真值变成默认（最该做的一件事）
 
 现在 `pixelTruth` 是可选开关。应该：
 
@@ -228,7 +305,7 @@ MCP 工具（`studio_design_*`）：`metrics` / `explore` / `anchors` / `fix_pla
    - DPR 非整数 / 滚动偏移 → 坐标错位
    建议改为：在 bbox 内做**双峰分离**（字形色 vs 底色），而不是只取边框环
 
-### P1：让攻击继续（RSI 闭环不能停）
+#### P1：让攻击继续（RSI 闭环不能停）
 
 派低耐心子代理，只做一件事：**攻击像素真值这条路**。
 预期它能找出：渐变底取样偏差、DPR 缩放、被遮挡文字、描边字、透明文字合成。
@@ -240,7 +317,7 @@ MCP 工具（`studio_design_*`）：`metrics` / `explore` / `anchors` / `fix_pla
 - 不许读说明文档，只信自己跑出来的结果
 - 必须给出原始输出与复现步骤
 
-### P2：把 `main` 合了
+#### P2：把 `main` 合了
 
 ```bash
 git checkout main && git merge studio-design-quality
@@ -248,7 +325,7 @@ git checkout main && git merge studio-design-quality
 
 合并前确认工作区那 96 个未提交改动是用户的、别一起带走。
 
-### P3：能力缺口（要新机制，不是补丁）
+#### P3：能力缺口（要新机制，不是补丁）
 
 | 缺口 | 现状 | 需要什么 |
 |---|---|---|
@@ -259,7 +336,7 @@ git checkout main && git merge studio-design-quality
 
 ---
 
-## 6. 别再做的事（踩过的坑）
+### 6. 别再做的事（踩过的坑）
 
 1. **别再补 CSS 合成的规则**。遮罩、滤镜、混合模式、渐变、阴影——补一条换一条攻击路径。去量。
 2. **别让检查从 `checks` 里消失**。哪怕"不适用"，也要显式 `notAssessable` 红项。
@@ -270,7 +347,7 @@ git checkout main && git merge studio-design-quality
 
 ---
 
-## 7. 文件地图
+### 7. 文件地图
 
 ```
 studio/
@@ -295,16 +372,15 @@ test/
   studio-explore-check.mjs / studio-anchors-check.mjs / ...
 
 docs/
-  HANDOFF.md                       ← 本文件
-  DELIVERY.md                      ← 交付清单
-  agent-trial-findings-2026-10-27.md  ← 33 轮缺陷台账（最有信息量）
-  design-tools-trial-report.md     ← 外部试用报告（13 轮轨迹）
-  free-canvas-design-ceiling.md    ← 能力边界与五层模型
+  history/handoff.md                 ← 本文件（HANDOFF + DELIVERY 合并）
+  history/trial-reports-2026-10.md   ← 外部试用报告与反馈复验（两篇合并）
+  history/agent-trial-findings-2026-10-27.md ← 33 轮缺陷台账（最有信息量）
+  history/free-canvas-design-ceiling.md ← 能力边界与五层模型
 ```
 
 ---
 
-## 8. 回退
+### 8. 回退
 
 ```bash
 # 快照（每轮一份，共 36 个）
@@ -323,7 +399,7 @@ git tag -l | grep rsi-backup
 
 ---
 
-## 9. 一句话交接
+### 9. 一句话交接
 
 **别把这条线当"设计评审签字工具"交付，它是「设计期的对抗性体检 + 几何/可达性门禁」。**
 它的绿值钱，是因为它经得起攻击；它的红值钱，是因为每条红都点得开、说得清怎么改。

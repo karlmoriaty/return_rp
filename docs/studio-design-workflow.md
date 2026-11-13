@@ -32,7 +32,7 @@
 
 ## 比较自由构图
 
-起稿后，使用 `studio_design_explore` 的 candidates 模式对同一任务提出不同的信息组织方式，在隔离副本中看回忆、揭示、完成等状态。AI 自写任意命令，工具返回实际浏览器联系图；选稿后才提交一个事务。完整参数、行为保留与证据边界见 [自由构图与多状态预演](studio-candidates-20261027.md)。
+起稿后，使用 `studio_design_explore` 的 candidates 模式对同一任务提出不同的信息组织方式，在隔离副本中看回忆、揭示、完成等状态。AI 自写任意命令，工具返回实际浏览器联系图；选稿后才提交一个事务。完整参数、行为保留与证据边界见 [自由构图与多状态预演](history/studio-candidates-20261027.md)。
 
 ## 2. 准备摄影素材
 
@@ -63,7 +63,7 @@
 
 ## 3. 用真实截图评审与改稿
 
-批量样式优先绑定设计 token，精细位置优先用 `editNodes` 的 align/place/move/distribute 表达关系。它编译为现有原子命令，失败时整批回滚，不隐式切换流式布局。修改后可在 `studio_review_design` 中传 `compareWithReviewId`，一次查看前后真实截图、变化图层范围和检查项变化；编辑器顶栏「对照」提供同一能力。示例和限制见 [关系编辑与画面对照](studio-editing-20261027.md)。
+批量样式优先绑定设计 token，精细位置优先用 `editNodes` 的 align/place/move/distribute 表达关系。它编译为现有原子命令，失败时整批回滚，不隐式切换流式布局。修改后可在 `studio_review_design` 中传 `compareWithReviewId`，一次查看前后真实截图、变化图层范围和检查项变化；编辑器顶栏「对照」提供同一能力。示例和限制见 [关系编辑与画面对照](history/studio-editing-20261027.md)。
 
 1. `studio_review_design({pageId:"home",baseRevision:8})` 创建版本截图及机器检查，状态为 `awaiting-visual-review`。工具返回真正的 MCP 图片块，供当前模型直接看图。
 2. 检查主次、构图、图片主体、图文比例、阅读层级和状态。每个问题给出节点 ID、问题和下一步决定。不能只写“更加高级”。
