@@ -8,7 +8,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 export const DEFAULT_VERSION = 11;
 export const MAGIC0 = 0xac;
@@ -55,6 +55,18 @@ export function installRoot(version) {
   const windowsLayout = join(s.appPath, 'DefaultSettings');
   if (existsSync(windowsLayout)) return windowsLayout;
   return join(s.appPath, 'Contents/Resources/DefaultSettings');
+}
+
+// 本机 Axure 资源路径（原生库/运行时样本从不随仓库分发）。
+export function settingsRoot(version = DEFAULT_VERSION) {
+  if (process.env.AXURE_SETTINGS_ROOT) return resolve(process.env.AXURE_SETTINGS_ROOT);
+  const root = installRoot(version);
+  if (!existsSync(root)) throw new Error(`Axure RP ${version} DefaultSettings not found. Set AXURE_SETTINGS_ROOT or AXURE_APP_RP${version}. Native assets are never downloaded or bundled.`);
+  return resolve(root);
+}
+
+export function libraryFile(name, version = DEFAULT_VERSION) {
+  return join(process.env.AXURE_LIBRARY_ROOT || join(settingsRoot(version), 'Libraries'), name);
 }
 
 // 从 .rp 字节流读版本；不是 Axure 容器或版本未知时抛错（不猜）。

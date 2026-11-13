@@ -3,7 +3,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { listCommands } from './registry.mjs';
 import { assertWritable } from './engine.mjs';
-import { runRegression } from '../test/regression.mjs';
 
 export function generateCapabilities() {
   // LIB_SCRIPTS 未导出；用既有 dump 接口取数据，保持注册表逻辑和导出契约不变。
@@ -12,7 +11,11 @@ export function generateCapabilities() {
   const { libScripts } = JSON.parse(dump.stdout);
   const commands = listCommands();
   const snapshots = JSON.parse(readFileSync(new URL('../test/snapshots.json', import.meta.url), 'utf8'));
-  const regression = runRegression();
+  // 文档生成只依赖测试的公开 JSON 出口；不静态 import test/，分享包也能独立启动。
+  const suite = spawnSync(process.execPath, [fileURLToPath(new URL('../test/historical-regression.mjs', import.meta.url)), '--json'],
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  if (suite.status !== 0) throw new Error(suite.stderr || 'fixture regression failed');
+  const regression = JSON.parse(suite.stdout);
   if (regression.failed) throw new Error(`回归失败 ${regression.failed} 项，拒绝生成通过状态文档`);
   const esc = text => String(text).replaceAll('|', '\\|').replaceAll('\n', '<br>');
   const lines = [

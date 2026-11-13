@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 — 2026-11-14
+
+- 修复轻量分享包缺少 `scripts/trim-to-single-page.mjs`：`create-blank-project.mjs` 引用它，缺文件会让 CLI 与 MCP 一启动就 `ERR_MODULE_NOT_FOUND`（表现为「无法取得工具列表」）。
+- 发布集与分享包新增静态 import 闭包校验：`packRelease` / `packShare` 在打包前逐个核对相对导入是否都在包内，回归新增第 20 项 `share package keeps every referenced module`。
+- 修复 `gen-capabilities.mjs` 从未导出的 `runRegression` 导入问题：改为调用 `test/historical-regression.mjs --json` 的公开出口，文档生成不再静态依赖 `test/`。
+- 示例 `build-native-demo.mjs` 改用 `scripts/version.mjs` 的 `libraryFile`，分享包不再通过 `test/native-inputs.mjs` 取本机库路径。
+- README（中/英）补充说明：MCP 工具列表依赖可选依赖 `@modelcontextprotocol/sdk`，缺少时按提示执行 `npm ci --ignore-scripts`；CLI 不受影响。
+
 ## 1.3.0 — 2026-11-13
 
 - 图片离线生成支持 RP 11：`generate_from_image` 的 `version: 11` 不再返回 `E_RP11_GUI_PASTE_REQUIRED`，改为使用本机 RP 11 空白模板走同一套原生场景写入与页面装配，输出可编辑二进制 `.rp`；`guiPaste: true` 仍保留 GUI 粘贴路径。

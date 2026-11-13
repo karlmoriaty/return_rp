@@ -5,7 +5,7 @@ import { createBlankProject } from '../scripts/create-blank-project.mjs';
 import { cloneLibraryWidget } from '../scripts/clone-library-widget.mjs';
 import { cloneLibraryPageContent } from '../scripts/clone-library-page-content.mjs';
 import { readRp } from '../scripts/rp-read.mjs';
-import { resolveLibrary } from '../test/native-inputs.mjs';
+import { libraryFile } from '../scripts/version.mjs';
 import { assertWritable } from '../scripts/engine.mjs';
 
 // All native bytes come from the user's local installation and blank template.
@@ -16,7 +16,7 @@ export function buildNativeDemo(destination) {
   mkdirSync(output);
   let source = join(output, '00-blank.rp');
   const blank = createBlankProject(source), page = blank.page;
-  const library = resolveLibrary('Default.rplib');
+  const library = libraryFile('Default.rplib');
   const widgets = [
     ['Button', 'SubmitButton', 40, 40, 160, 40],
     ['Paragraph', 'StatusBanner', 40, 110, 400, 70],

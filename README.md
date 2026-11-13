@@ -91,6 +91,8 @@ python -m pip install -r requirements.txt
 npm ci
 ```
 
+> MCP 工具列表依赖可选依赖 `@modelcontextprotocol/sdk`（`npm ci` 会一并安装）。只跑 CLI 不装也能用；缺少依赖时 MCP 启动会提示在项目目录执行 `npm ci --ignore-scripts`，而不是静默返回空工具列表。
+
 <details>
 <summary><b>连接你的 MCP 客户端</b> · 展开配置</summary>
 

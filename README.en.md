@@ -91,6 +91,8 @@ python -m pip install -r requirements.txt
 npm ci
 ```
 
+> MCP tool discovery needs the optional `@modelcontextprotocol/sdk` dependency, which `npm ci` installs. The CLI works without it; when missing, MCP startup tells you to run `npm ci --ignore-scripts` instead of silently returning an empty tool list.
+
 <details>
 <summary><b>Connect your MCP client</b> · Expand configuration</summary>
 

@@ -33,11 +33,35 @@ export function releasePaths(root = ROOT) {
   return paths.sort();
 }
 
+// 轻量分享包：发布集去掉测试、基准、CI 配置与二进制样本，体积小但仍须能独立启动。
+const SHARE_EXCLUDES = [/^test\//, /^benchmarks\//, /^\.github\//, /\.rp$/, /^release-manifest\.json$/];
+export function sharePaths(root = ROOT) {
+  return releasePaths(root).filter(path => !SHARE_EXCLUDES.some(pattern => pattern.test(path)));
+}
+
+// 静态 import 闭包校验：分享包曾漏掉 trim-to-single-page.mjs，MCP 一启动就 ERR_MODULE_NOT_FOUND。
+const RELATIVE_IMPORT = /(?:import|export)\s+(?:[^'"]*?\s+from\s+)?['"](\.[^'"]+)['"]|import\(\s*['"](\.[^'"]+)['"]\s*\)/g;
+export function assertImportClosure(paths, root = ROOT) {
+  const published = new Set(paths), missing = [];
+  for (const path of paths) {
+    if (!/\.m?js$/.test(path)) continue;
+    const text = readFileSync(join(root, path), 'utf8');
+    for (const match of text.matchAll(RELATIVE_IMPORT)) {
+      const target = relative(root, resolve(root, dirname(path), match[1] || match[2])).split(sep).join('/');
+      if (!published.has(target)) missing.push(`${path} -> ${target}`);
+    }
+  }
+  if (missing.length) throw new Error(`发布集缺少被引用的模块：\n${missing.join('\n')}`);
+  return paths.length;
+}
+
 export function packRelease(destination) {
   const output = resolve(destination);
   assertWritable(output);
   if (existsSync(output)) throw new Error('Release directory must be a new directory');
-  const paths = releasePaths(), files = {};
+  const paths = releasePaths();
+  assertImportClosure(paths);
+  const files = {};
   mkdirSync(output);
   for (const path of paths) {
     const target = join(output, path);
@@ -51,7 +75,24 @@ export function packRelease(destination) {
   return { output, files: paths.length, commands: manifest.commands, mcpTools: manifest.mcpTools };
 }
 
+export function packShare(destination) {
+  const output = resolve(destination);
+  assertWritable(output);
+  if (existsSync(output)) throw new Error('Share directory must be a new directory');
+  const paths = sharePaths();
+  assertImportClosure(paths);
+  mkdirSync(output);
+  for (const path of paths) {
+    const target = join(output, path);
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(join(ROOT, path), target, constants.COPYFILE_EXCL);
+  }
+  return { output, files: paths.length };
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
-  if (process.argv.length !== 4 || process.argv[2] !== '-o') throw new Error('Usage: node scripts/pack-release.mjs -o <new-directory>');
-  console.log(JSON.stringify(packRelease(process.argv[3]), null, 2));
+  const share = process.argv[2] === '--share';
+  const args = share ? process.argv.slice(3) : process.argv.slice(2);
+  if (args.length !== 2 || args[0] !== '-o') throw new Error('Usage: node scripts/pack-release.mjs [-o <new-directory>] [--share -o <new-directory>]');
+  console.log(JSON.stringify(share ? packShare(args[1]) : packRelease(args[1]), null, 2));
 }

@@ -11,7 +11,7 @@ import { listCommands } from '../scripts/registry.mjs';
 import { listMcpTools, jobTools, validateInput } from '../scripts/mcp-tools.mjs';
 import { encodeStyleEntry } from '../scripts/set-widget-richtext.mjs';
 import { assertNotProtected, assertWritable } from '../scripts/engine.mjs';
-import { packRelease, releasePaths } from '../scripts/pack-release.mjs';
+import { packRelease, packShare, releasePaths, sharePaths, assertImportClosure } from '../scripts/pack-release.mjs';
 import { renderLayout } from '../examples/render-layout.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -145,6 +145,15 @@ try {
     assert.ok(existsSync(join(output, 'test/historical-regression.mjs')));
     assert.ok(existsSync(join(output, 'README.zh-CN.md')));
     assert.equal(run(join(output, 'scripts/registry.mjs'), ['validate']).status, 0);
+  });
+  check('share package keeps every referenced module', () => {
+    const paths = sharePaths();
+    assertImportClosure(paths);
+    assert.ok(paths.includes('scripts/trim-to-single-page.mjs'));
+    assert.ok(paths.includes('scripts/create-blank-project.mjs'));
+    assert.ok(!paths.some(path => path.startsWith('test/')));
+    const output = join(work, 'share'); packShare(output);
+    assert.equal(run(join(output, 'bin/axure.mjs'), ['--help']).status, 0);
   });
   check('source baseline fingerprints match every registered script', () => {
     const baseline = JSON.parse(readFileSync(join(root, 'test/baseline-shas.json')));
