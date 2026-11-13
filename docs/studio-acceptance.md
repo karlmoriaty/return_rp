@@ -15,7 +15,7 @@ npm run test:studio-ai
 npm run test:studio-editing
 ```
 
-`test:backend`需要自己的RP9模板/安装资源；其余检查的依赖见[贡献说明](../CONTRIBUTING.md)。GUI验证还需要macOS与Axure，缺少宿主不能记为通过。
+`test:backend`需要自己的RP9模板/安装资源；其余检查的依赖见[贡献说明](../CONTRIBUTING.md)。GUI验证还需要macOS或Windows桌面会话与Axure，缺少宿主不能记为通过。
 
 本机macOS / RP9实测：40页2040元件原始项目生成27.8秒，同三项改稿32.8秒，事件441/441、结构三零；保存关闭重开和真实预览另行通过。旧23分29秒/20分20秒引用原试用报告，并非再次运行旧版全量所得。这是该样本与本机环境的记录，不外推任意规模或平台。
 
@@ -40,7 +40,7 @@ Studio原场景用真实指针验证了热区下点选、双击文字、Option�
 node bin/axure.mjs studio scenarios --port 4335 --domain birding --ids flow-list-to-detail-and-back --layers semantic,browser,axure-preview
 ```
 
-自动原生预览需要 macOS、Swift 工具链和 Axure RP9。每次打开唯一命名副本，必须出现可唯一识别的新预览端口。GUI失败最多使用新副本重试一次，所有尝试及失败文件均保留。其他宿主可通过 `axurePreviewUrl`（CLI `--axure-preview-url`）传入自己从目标工程生成的真实预览地址；自动宿主不可用时返回 `blocked`。
+自动原生预览需要 macOS（Swift 工具链）或 Windows（Windows PowerShell，RP 9 / RP 11）加 Axure 桌面会话。每次打开唯一命名副本，必须出现可唯一识别的新预览端口。GUI失败最多使用新副本重试一次，所有尝试及失败文件均保留。Windows 宿主对未修改的文档可能只执行保存命令而不写盘，`saved` 如实反映是否发生写入。其他宿主可通过 `axurePreviewUrl`（CLI `--axure-preview-url`）传入自己从目标工程生成的真实预览地址；自动宿主不可用时返回 `blocked`。
 
 程序接口 `runAcceptanceScenarios(doc, {scenarios, layers})` 可接收自定义场景：
 

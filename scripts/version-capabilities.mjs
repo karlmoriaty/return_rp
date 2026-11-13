@@ -54,8 +54,8 @@ export const VERSION_FEATURES = [
     'RP 9 改写为 TargetItem.index 规则；结构已验证，运行时待 RP 9 预览实测'),
   feature('studio-rp1-local', 'Studio 局部 RP/1 创作', 'supported', 'supported',
     '按当前文档 target 包装片段，9 / 11 同一套校验'),
-  feature('axure-preview', '自动 Axure 预览', 'supported', 'partial',
-    '预览宿主仅 macOS；RP 11 目标已接入同一 GUI 往返，尚未在 RP 11 上完成端到端验证'),
+  feature('axure-preview', '自动 Axure 预览', 'supported', 'supported',
+    'macOS 走 Swift 宿主（RP 9 实测），Windows 走 PowerShell 宿主（RP 9 / RP 11 均实测往返与预览）'),
   feature('offline-image-generate', '图片离线生成原生工程', 'supported', 'supported',
     '两版都离线写二进制 .rp；RP 11 使用本机空白模板，guiPaste 仍可显式选择'),
   feature('cli-mcp', 'CLI / MCP 入口', 'supported', 'supported'),
@@ -75,7 +75,6 @@ export const DOCUMENTED_GAPS = {
   'rp11-only-fcalls:rp9': { status: 'explicit-diagnostic', reason: 'RP 9 函数表没有这些表达式函数' },
   'repeater-filter-combo-type:rp9': { status: 'partial', reason: 'RP 9 无 FilterComboType；单条件动作按顺序过滤（AND）' },
   'repeater-delete-row-indices:rp9': { status: 'partial', reason: 'RP 9 改写为 TargetItem.index 规则，运行时待预览实测' },
-  'axure-preview:rp11': { status: 'partial', reason: '仅 macOS；RP 11 目标走同一 GUI 往返但未做端到端验证' },
 };
 
 export function featureById(id) {
@@ -123,5 +122,4 @@ export const DIAGNOSTIC_EVIDENCE = {
   'rp11-only-fcalls': { file: 'scripts/ix-actions.mjs', text: 'is RP 11-only; Axure RP 9 does not provide it' },
   'repeater-filter-combo-type': { file: 'scripts/ix-actions.mjs', text: 'comboType 在 RP 9 上无对应键' },
   'repeater-delete-row-indices': { file: 'scripts/ix-actions.mjs', text: 'rowIndices 在 RP 9 上改写为 TargetItem.index 规则' },
-  'axure-preview:rp11': { file: 'studio/axure-preview.mjs', text: '自动 Axure 预览需要 macOS', version: 'rp11' },
 };

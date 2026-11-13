@@ -126,10 +126,13 @@ try {
     const rawBase = `${a}/link/..`;
     const job = await manager.startRoundtrip({ source: `${rawBase}/source.rp`, output: `${rawBase}/physical.rp`, wait: true });
     assert.equal(job.status, 'completed');
-    assert.ok(other.equals(readFileSync(join(b, 'physical.rp'))));
-    assert.equal(job.source, realpathSync(join(b, 'source.rp')));
-    assert.equal(job.output, join(realpathSync(b), 'physical.rp'));
-    assert.ok(!existsSync(join(a, 'physical.rp')));
+    // Windows 在打开路径前按词法折叠 `..`，`link\..` 回到 a/；POSIX 才按链接目标解析到 b/。
+    const physical = process.platform === 'win32' ? a : b;
+    const expected = process.platform === 'win32' ? original : other;
+    assert.ok(expected.equals(readFileSync(join(physical, 'physical.rp'))));
+    assert.equal(job.source, join(realpathSync(physical), 'source.rp'));
+    assert.equal(job.output, join(realpathSync(physical), 'physical.rp'));
+    assert.ok(!existsSync(join(physical === a ? b : a, 'physical.rp')));
   });
   await check('只保存但未关闭重开不能完成往返任务', async () => {
     const partial = new JobManager({ runner: ([output]) => spawn(process.execPath, ['--input-type=module', '-e', 'import{readFileSync,writeFileSync}from"node:fs";setTimeout(()=>{const p=process.argv[1];writeFileSync(p,readFileSync(p));console.error("AXURE_GUI_PHASE saved")},20)', output]) });

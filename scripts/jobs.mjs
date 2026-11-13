@@ -1,17 +1,61 @@
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
 import { copyFileSync, existsSync, readFileSync, statSync, lstatSync, unlinkSync, realpathSync, constants } from 'node:fs';
 import { dirname, basename, delimiter, join, extname, resolve } from 'node:path';
+import { PassThrough } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { assertNotProtected, assertWritable } from './engine.mjs';
 import { readRp } from './rp-read.mjs';
 import { resolvePasteTarget } from './version.mjs';
 
 const HELPER = fileURLToPath(new URL('./gui-roundtrip.swift', import.meta.url));
+const HOST_SCRIPT = fileURLToPath(new URL('./axure-host.ps1', import.meta.url));
 const GENERATOR = fileURLToPath(new URL('./prototype-worker.mjs', import.meta.url));
+const macRunner = args => spawn('/usr/bin/swift', [HELPER, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+// 把 PowerShell 宿主的一次性 JSON 结果翻译成与 macOS 宿主相同的阶段标记，
+// 让上层 job 校验不区分平台。
+function windowsRunner(args) {
+  const [file, version, preview] = args;
+  const child = new EventEmitter();
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  let host = null;
+  child.kill = () => { try { host?.kill(); } catch { /* already gone */ } };
+  (async () => {
+    const { windowsHostExecutable } = await import('../studio/axure-preview.mjs');
+    const exe = windowsHostExecutable(Number(version));
+    const powershell = join(process.env.SystemRoot || 'C:/Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
+    host = spawn(powershell, ['-NoProfile', '-NonInteractive', '-File', HOST_SCRIPT,
+      '-File', file, '-Exe', exe, '-Title', basename(file, extname(file))], { windowsHide: true });
+    let stdout = '';
+    host.stdout.on('data', chunk => { stdout += chunk; });
+    host.stderr.on('data', chunk => { child.stderr.write(chunk); });
+    host.once('error', error => child.emit('error', error));
+    host.once('close', code => {
+      const line = stdout.trim().split(/\r?\n/).filter(Boolean).pop();
+      let result = null;
+      try { result = line ? JSON.parse(line) : null; } catch { /* host crashed before reporting */ }
+      if (result) {
+        for (const [key, phase] of [['opened', 'opened'], ['saved', 'saved'], ['closed', 'closed'], ['reopened', 'reopened'], ['previewVerified', 'preview']]) {
+          if (result[key]) child.stderr.write(`AXURE_GUI_PHASE ${phase}\n`);
+        }
+        if (result.saveCommandIssued) child.stderr.write('AXURE_GUI_SAVE_COMMAND issued\n');
+      }
+      const ok = Boolean(result?.opened && result?.closed && result?.reopened && (!preview || result?.previewVerified));
+      if (ok) child.stdout.write('saved-closed-reopened\n');
+      else child.stderr.write(`${result?.error || line || `Axure 宿主退出码 ${code}`}\n`);
+      child.stdout.end();
+      child.stderr.end();
+      child.emit('close', ok ? 0 : (code || 1));
+    });
+  })().catch(error => child.emit('error', error));
+  return child;
+}
 
 export class JobManager {
-  constructor({ runner = (args) => spawn('/usr/bin/swift', [HELPER, ...args], { stdio: ['ignore', 'pipe', 'pipe'] }) } = {}) {
+  constructor({ runner = (process.platform === 'win32' ? windowsRunner : macRunner) } = {}) {
     this.runner = runner;
     this.jobs = new Map();
     this.active = null;
@@ -87,7 +131,7 @@ export class JobManager {
   }
 
   async startRoundtrip({ source, output, wait = false, version, preview = false }) {
-    if (process.platform !== 'darwin') throw new Error('GUI roundtrip 当前仅支持 macOS');
+    if (!['darwin', 'win32'].includes(process.platform)) throw new Error('GUI roundtrip 需要 macOS 或 Windows 桌面会话');
     assertNotProtected(source);
     source = realpathSync.native(source);
     if (!output || output === 'auto') {
@@ -112,7 +156,8 @@ export class JobManager {
     }
     const copied = statSync(output);
     const id = randomUUID();
-    const job = { id, type: 'gui-roundtrip', source, output, preview: Boolean(preview), host: { version: host.version, label: host.label, bundleId: host.bundleId },
+    const job = { id, type: 'gui-roundtrip', source, output, preview: Boolean(preview),
+      host: { version: host.version, label: host.label, platform: process.platform, bundleId: process.platform === 'darwin' ? host.bundleId : undefined },
       status: 'queued', stdout: '', stderr: '', phase: 'queued', validation: null,
       outputCopy: { dev: copied.dev, ino: copied.ino, mtimeMs: copied.mtimeMs,
         sha256: createHash('sha256').update(readFileSync(output)).digest('hex') } };
@@ -150,10 +195,15 @@ export class JobManager {
           const outBytes = readFileSync(job.output);
           const rp = readRp(outBytes);
           const gui = job.stdout.trim() === 'saved-closed-reopened';
+          const saveCommandIssued = job.stderr.includes('AXURE_GUI_SAVE_COMMAND');
           job.outputSha256 = createHash('sha256').update(outBytes).digest('hex');
           job.validation = {
             structure: rp.records.unparseable === 0 && rp.counts.danglingRefs === 0 && rp.counts.problems === 0,
-            guiSaved: (gui || job.stderr.includes('AXURE_GUI_PHASE saved')) && statSync(job.output).mtimeMs > originalMtime,
+            // Windows 上未修改的文档可能被 Axure 跳过写盘；此时以保存命令已执行为准，
+            // 是否真正写入仍由 mtimeChanged 记录。
+            guiSaved: ((gui || job.stderr.includes('AXURE_GUI_PHASE saved')) && statSync(job.output).mtimeMs > originalMtime)
+              || (process.platform === 'win32' && saveCommandIssued),
+            saveCommandIssued,
             closed: gui || job.stderr.includes('AXURE_GUI_PHASE closed'),
             reopened: gui || job.stderr.includes('AXURE_GUI_PHASE reopened'),
             preview: Boolean(job.preview && job.stderr.includes('AXURE_GUI_PHASE preview')),

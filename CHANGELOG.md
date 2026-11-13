@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.2 — 2026-11-14
+
+- Windows 原生宿主：新增 `scripts/axure-host.ps1`，自动完成打开自有副本 → 保存 → 关闭 → 重开 → F5 预览，并按端口与 `start.html` 内容确认预览归属；RP 9 与 RP 11 均实测往返与预览。
+- 自动预览在 Windows 桌面会话下可运行，`version-capabilities` 中「自动 Axure 预览」正式登记为两版 `supported`，删除 RP 11 缺口与诊断证据。
+- MCP `gui_roundtrip` 任务支持 Windows（PowerShell 宿主），与 macOS 共用同一套阶段标记、队列和失败清理；`host.platform` 明确记录宿主平台。
+- 修复宿主「保存」误报：`saved` 不再无条件为 `true`，只有文件确实写入（mtime 变化）才为真；Windows 上 Axure 可能对未修改文档跳过写盘，此时如实返回 `saved:false` 并单独记录 `saveCommandIssued`，任务验收以保存命令已执行为准。
+- 新增 `test/axure-preview-windows-check.mjs`（`npm run test:preview-windows`）：两版各跑一次真实宿主往返与预览，缺 Windows 桌面会话或本机 Axure 时 SKIP。
+
 ## 1.3.1 — 2026-11-14
 
 - 修复轻量分享包缺少 `scripts/trim-to-single-page.mjs`：`create-blank-project.mjs` 引用它，缺文件会让 CLI 与 MCP 一启动就 `ERR_MODULE_NOT_FOUND`（表现为「无法取得工具列表」）。

@@ -132,7 +132,7 @@ npm ci
 
 Agent 从 `studio_describe({"topic":"workflow"})` 开始。导入已有 RP/1 可为 `studio_open_project` 指定 `sourcePath`；完整原生生成使用 `generate_prototype`。局部创作和完整编译的支持范围分别记录。
 
-原生生成当前以 RP9 为目标，RP9 / RP11 文件工具按版本处理。宿主证据主要来自 macOS + Axure RP9；部分效果采用嵌入位图，字体和预览可能受宿主影响。任意小数缩放清晰度、单画板海量节点仍有边界。
+原生生成默认目标 RP 11，也可用 `target=9` 或 `AXURE_TARGET_VERSION=9` 切到 RP9。宿主证据覆盖 macOS + Axure RP9，以及 Windows + Axure RP9 / RP11（GUI 保存重开与预览往返）。部分效果采用嵌入位图，字体和预览可能受宿主影响。任意小数缩放清晰度、单画板海量节点仍有边界。
 
 结构检查、浏览器行为与 Axure 保存重开分别验证。[能力范围](references/capabilities.md) · [RP9 / RP11 能力对齐](docs/version-parity.md) · [验收层级](docs/studio-acceptance.md) · [故障排查](references/troubleshooting.md)
 

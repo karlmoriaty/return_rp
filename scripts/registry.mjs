@@ -341,12 +341,12 @@ const LIB_SCRIPTS = [
   },
   {
     "script": "jobs.mjs",
-    "summary": "macOS GUI 保存关闭重开队列：wait:false 句柄、list/get/cancel，单服务内串行",
+    "summary": "macOS / Windows GUI 保存关闭重开队列：wait:false 句柄、list/get/cancel，单服务内串行",
     "evidence": "internal",
     "tools": [
       {
         "name": "gui_roundtrip",
-        "description": "复制到新文件后在 Axure RP 9 或 RP 11 保存、关闭、重开（宿主按 version 或源文件版本绑定）；可选传 preview=true 在重开后触发菜单「发布 -> 预览」。默认立即返回 job 句柄。",
+        "description": "复制到新文件后在 Axure RP 9 或 RP 11 保存、关闭、重开（宿主按 version 或源文件版本绑定；macOS 走 Swift 宿主，Windows 走 PowerShell 宿主）；可选传 preview=true 在重开后触发预览并校验本地预览地址。默认立即返回 job 句柄。",
         "inputSchema": {
           "type": "object",
           "properties": {

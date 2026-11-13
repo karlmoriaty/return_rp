@@ -9,7 +9,7 @@ import { listMcpTools, jobTools } from './mcp-tools.mjs';
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const TOP = ['README.md', 'README.en.md', 'README.zh-CN.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'LICENSE', 'SKILL.md', '.gitignore', '.npmignore', 'package.json', 'package-lock.json', 'requirements.txt'];
 const DIRS = ['bin', 'scripts', 'studio', 'test', 'references', 'examples', 'docs', 'assets', 'tools', 'benchmarks', '.github'];
-const EXTENSIONS = /\.(m?js|html|css|py|swift|md|json|rp1|svg|png|jpe?g|webp|gif|ya?ml|ttf|txt)$/;
+const EXTENSIONS = /\.(m?js|html|css|py|ps1|swift|md|json|rp1|svg|png|jpe?g|webp|gif|ya?ml|ttf|txt)$/;
 
 // Copy the public source without pruning implementations, tests, or rewriting their contents.
 export function releasePaths(root = ROOT) {

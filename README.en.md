@@ -132,7 +132,7 @@ Then give your agent a brief:
 
 Agents start with `studio_describe({"topic":"workflow"})`. Use `sourcePath` in `studio_open_project` to import RP/1, and `generate_prototype` for full native generation. Local authoring and full compilation have separately documented scopes.
 
-Native generation targets RP9; file tools handle RP9 / RP11 by version. Host evidence mainly covers macOS + Axure RP9. Some effects use embedded raster assets; fonts and previews depend on the host. Fractional-zoom sharpness and very large single boards remain bounded.
+Native generation defaults to RP 11; use `target=9` or `AXURE_TARGET_VERSION=9` for RP9. Host evidence covers macOS + Axure RP9 and Windows + Axure RP9 / RP11 (GUI save/reopen and preview roundtrips). Some effects use embedded raster assets; fonts and previews depend on the host. Fractional-zoom sharpness and very large single boards remain bounded.
 
 Structure, browser behavior and Axure save/reopen are separate checks. [Capabilities](references/capabilities.md) · [Acceptance layers](docs/studio-acceptance.md) · [Troubleshooting](references/troubleshooting.md)
 

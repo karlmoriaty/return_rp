@@ -33,7 +33,7 @@
 | 过滤组合类型 | partial | supported | RP 9 无 `FilterComboType`；单条件动作按顺序过滤（AND） |
 | 按行号删除中继器行 | partial | supported | RP 9 改写为 `TargetItem.index` 规则，运行时待预览实测 |
 | Studio 局部 RP/1 创作 | supported | supported | 按文档 `target` 包装片段，9 / 11 同一套校验 |
-| 自动 Axure 预览 | supported | partial | 仅 macOS；RP 11 目标走同一 GUI 往返，尚未端到端验证 |
+| 自动 Axure 预览 | supported | supported | macOS 走 Swift 宿主；Windows 走 PowerShell 宿主，RP 9 / RP 11 均已实测往返与预览（未修改的文档可能被 Axure 跳过写盘，宿主如实返回 `saved`） |
 | 图片离线生成原生工程 | supported | supported | 两版都离线写二进制；RP 11 使用本机空白模板 |
 | CLI / MCP 入口 | supported | supported | 两版共用同一批工具 |
 | 版本专属键 lint | supported | supported | 按文件头版本扫描 |
@@ -45,7 +45,6 @@
 | 缺口 | 状态 | 原因 |
 | :--- | :--- | :--- |
 | 面板注册链修复 @ RP 11 | not-applicable | RP 11 没有 `DynamicPanelInfo` / `PanelDiagramInfo` |
-| 自动预览 @ RP 11 | partial | 仅 macOS，RP 11 目标尚未端到端验证 |
 | 缩放锚点 / 切换启用 / 应用样式 / RP 11 事件与函数 @ RP 9 | explicit-diagnostic | RP 9 原生结构或运行时没有对应模型 |
 | 过滤组合类型 @ RP 9 | partial | 无 `FilterComboType` 键；单条件顺序过滤等价于 AND |
 | 按行号删除 @ RP 9 | partial | 改写为 `TargetItem.index` 规则，运行时未在 RP 9 预览实测 |
@@ -58,6 +57,7 @@ node test/native-repeater-versions-check.mjs   # 需本机 Axure 安装与 Pytho
 node test/native-form-style-versions-check.mjs # 同上
 node test/repeater-action-parity-check.mjs     # removeAll / comboType / rowIndices 两版对齐
 node test/image-generate-versions-check.mjs   # 图片离线生成本地 RP 9 / RP 11 一致
+node test/axure-preview-windows-check.mjs      # 需 Windows 桌面会话与本机 Axure，缺依赖时 SKIP
 ```
 
 测试会检查：
