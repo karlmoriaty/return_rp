@@ -28,8 +28,8 @@ export const VERSION_FEATURES = [
   feature('panel-registry', '面板注册链修复', 'supported', 'not-applicable',
     'RP 11 没有 DynamicPanelInfo / PanelDiagramInfo 模型'),
   feature('native-form-controls', '原生表单控件克隆', 'supported', 'supported'),
-  feature('native-form-state-styles', '原生表单状态样式', 'supported', 'partial',
-    'RP 11 已克隆控件、文字与几何；Selected / MouseOver 状态样式仍跳过并告警'),
+  feature('native-form-state-styles', '原生表单状态样式', 'supported', 'supported',
+    '两版 Axure:Style 结构一致，按目标版本读取本机 DefaultStyle'),
   feature('native-repeater', '原生中继器', 'supported', 'supported',
     'RP 9 / RP 11 各自从本机 Default.rplib 克隆结构等价的中继器'),
   feature('adaptive-views', '自适应视图', 'supported', 'supported',
@@ -68,7 +68,6 @@ export const FEATURE_STATUSES = ['supported', 'partial', 'explicit-diagnostic', 
 // 对齐测试要求矩阵里的每个非 supported 项恰好落在这里，且这里没有孤儿项。
 export const DOCUMENTED_GAPS = {
   'panel-registry:rp11': { status: 'not-applicable', reason: 'RP 11 没有 DynamicPanelInfo / PanelDiagramInfo 模型' },
-  'native-form-state-styles:rp11': { status: 'partial', reason: 'RP 11 Axure:Style 结构未接通，状态样式跳过并告警' },
   'fade-scale-anchor:rp9': { status: 'explicit-diagnostic', reason: 'RP 9 FadeWidgetInfo 无 scale / anchor' },
   'toggle-enabled:rp9': { status: 'explicit-diagnostic', reason: 'RP 9 enable 只有布尔启用/禁用' },
   'apply-style:rp9': { status: 'explicit-diagnostic', reason: 'RP 9 无 InteractionApplyStyle 类型' },
@@ -127,6 +126,5 @@ export const DIAGNOSTIC_EVIDENCE = {
   'repeater-sort-remove-all': { file: 'scripts/ix-actions.mjs', text: 'remove-all-sorts' },
   'repeater-filter-combo-type': { file: 'scripts/ix-actions.mjs', text: 'comboType 是 RP 11 专属键' },
   'repeater-delete-row-indices': { file: 'scripts/ix-actions.mjs', text: 'rowIndices 是 RP 11 专属键' },
-  'native-form-state-styles:rp11': { file: 'scripts/native-forms.mjs', text: 'native form styles are RP 9-only; skipping state-style pass', version: 'rp11' },
   'axure-preview:rp11': { file: 'studio/axure-preview.mjs', text: '自动 Axure 预览需要 macOS', version: 'rp11' },
 };

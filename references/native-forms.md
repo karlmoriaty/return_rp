@@ -12,7 +12,7 @@ combobox #price [280x40] options=["全部价格","0-50","50-200","200以上"] se
 listbox #choices [280x120] options=["一","二","三"] multiple=true selectedIndices=[0,2]
 ```
 
-`droplist` 是 `combobox` 的别名。以上分别生成真实 RadioButton、Checkbox、ComboBox 和 ListBox；原有 `input` 仍生成 TextBox。模板读取使用者本机 RP9 的 `Default.rplib`，不把 Axure 元件库打进发行包。
+`droplist` 是 `combobox` 的别名。以上分别生成真实 RadioButton、Checkbox、ComboBox 和 ListBox；原有 `input` 仍生成 TextBox。模板按目标版本读取使用者本机 RP 9 / RP 11 的 `Default.rplib`（两版 `Axure:Style` 同构），不把 Axure 元件库打进发行包。
 
 `group` 定义单选互斥组；`checked` 定义勾选初态。列表 `options` 是非空字符串数组，`selectedIndex` 从 0 开始。ListBox 默认单选；多选使用 `multiple=true`，`selectedIndices` 可为空，且不能与 `selectedIndex` 同时声明。`disabled=true` 设置禁用初态。
 
@@ -35,7 +35,7 @@ listbox #choices [280x120] options=["一","二","三"] multiple=true selectedInd
 
 `input #entry [220x44] value="editable" rotation=25` 保留真实 TextBox 和角度字段。RP9 TextBox 的静态 Rotation 能力位未设置，预览不会应用静态属性；编译器因此生成元件 `OnLoad` 的原生居中绝对旋转动作（`RotateType=Location=0`，零时长），背景仍使用静态角度。输入、取值和 change 事件保持可用。
 
-2026-11-02 本机 RP9 样本已保存、关闭、重开并发布，真实浏览器核验 25°、−30°、0°、输入联动与跳页返回。编辑器不提供 TextBox 静态旋转；生成的初始化动作可以在原生交互中查看。显式 `static` / `--no-interactions` 会移除动作，不能据此保证旋转预览。不扩展其他表单控件、RP11 或任意容器组合的宿主证明。
+2026-11-02 本机 RP9 样本已保存、关闭、重开并发布，真实浏览器核验 25°、−30°、0°、输入联动与跳页返回。编辑器不提供 TextBox 静态旋转；生成的初始化动作可以在原生交互中查看。显式 `static` / `--no-interactions` 会移除动作，不能据此保证旋转预览。不扩展其他表单控件或任意容器组合的宿主证明。RP 11 使用同一 `Axure:Style` 结构与本机 `Default.rplib`，状态样式写入已由 `test/native-form-style-versions-check.mjs` 校验；RP 11 真机预览仍需单独验证。
 
 ## 原生状态样式
 

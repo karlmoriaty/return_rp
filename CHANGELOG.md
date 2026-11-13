@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 — 2026-11-13
+
+- 原生表单状态样式支持 RP 11：两版 `Axure:Style` 结构一致，`applyNativeWidgetStyles` 不再在 RP 11 上跳过整段状态样式，按目标版本读取本机 `DefaultStyle` 后写入 Hover / Selected / Disabled / Focused 等状态。
+- 能力矩阵将 `native-form-state-styles` 的 RP 11 状态提升为 `supported`，删除对应缺口与诊断证据；文档同步说明两版结构一致。
+- 新增 `test/native-form-style-versions-check.mjs`（`npm run test:form-styles-versions`）：同一份 `examples/rp-language/native-forms.rp1` 分别构建 RP 9 / RP 11，校验 56 个原生元件、19 个状态样式与三零结构，两版数量必须一致；缺少本机 Axure / Pillow 时 SKIP。
+- 本机验证：RP 9 与 RP 11 均 56 元件 / 19 状态样式 / `problems=0` / `danglingRefs=0`。
+
 ## 1.2.1 — 2026-11-13
 
 - 原生中继器支持 RP 11：按目标文件的文件头版本选择本机 `Default.rplib`（RP 9 / RP 11 的 Repeater 结构等价），克隆、数据模型与行模板装配走同一套代码；RP 11 不再在写入前报错。

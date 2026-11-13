@@ -1,4 +1,4 @@
-// RP9 native form widgets and state styles, using the installed RP9 library.
+// Native form widgets and state styles, using the target version's installed library (RP 9 / RP 11).
 // The state map is MyStyle DOA 21; it is independent of InteractionMap events.
 import { randomBytes } from 'node:crypto';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -131,12 +131,6 @@ function writeWidget(e, widget, config, file) {
 
 export function applyNativeWidgetStyles(buffer, configs) {
   if (!configs.length) return buffer;
-  if (detectFileVersion(buffer) !== 9) {
-    // RP 11 的 Axure:Style 结构与 RP 9 不同（含额外版本字段），当前未验证写入，
-    // 这里跳过状态样式补丁但保留元件、文本与几何，避免整份工程生成失败。
-    console.error('[WARN] native form styles are RP 9-only; skipping state-style pass');
-    return buffer;
-  }
   const matches = configs.map(() => 0);
   let output = buffer;
   for (const index of readRecords(buffer).filter(r => ['Axure:Page', 'Axure:PanelState', 'Axure:Master'].includes(r.className)).map(r => r.index)) {
