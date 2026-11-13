@@ -1,0 +1,12 @@
+node_modules/
+.venv/
+.venv*/
+__pycache__/
+*.pyc
+.DS_Store
+.proto-axvg-cache/
+*.rp
+*.rplib
+outputs/
+release/
+gui-jobs-check/

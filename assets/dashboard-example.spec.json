@@ -1,0 +1,367 @@
+{
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 640,
+      "name": "return_rp reference",
+      "bg": "#F1F5F9",
+      "children": [
+        {
+          "kind": "rect",
+          "x": 0,
+          "y": 0,
+          "w": 230,
+          "h": 640,
+          "fill": "#0F172A",
+          "corners": 0
+        },
+        {
+          "kind": "text",
+          "x": 28,
+          "y": 35,
+          "w": 180,
+          "h": 40,
+          "content": "return_rp",
+          "size": 30,
+          "color": "#FFFFFF",
+          "weight": 700
+        },
+        {
+          "kind": "text",
+          "x": 28,
+          "y": 83,
+          "w": 170,
+          "h": 21,
+          "content": "PROTOTYPE TOOLKIT",
+          "size": 11,
+          "color": "#94A3B8",
+          "weight": 700
+        },
+        {
+          "kind": "rect",
+          "x": 18,
+          "y": 142,
+          "w": 194,
+          "h": 46,
+          "fill": "#2563EB",
+          "corners": 8
+        },
+        {
+          "kind": "text",
+          "x": 34,
+          "y": 153,
+          "w": 150,
+          "h": 26,
+          "content": "Overview",
+          "size": 16,
+          "color": "#FFFFFF",
+          "weight": 700
+        },
+        {
+          "kind": "text",
+          "x": 34,
+          "y": 218,
+          "w": 150,
+          "h": 26,
+          "content": "Pages",
+          "size": 16,
+          "color": "#94A3B8",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 34,
+          "y": 283,
+          "w": 150,
+          "h": 26,
+          "content": "Interactions",
+          "size": 16,
+          "color": "#94A3B8",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 34,
+          "y": 348,
+          "w": 150,
+          "h": 26,
+          "content": "Validation",
+          "size": 16,
+          "color": "#94A3B8",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 28,
+          "y": 570,
+          "w": 170,
+          "h": 21,
+          "content": "Public reference layout",
+          "size": 11,
+          "color": "#94A3B8",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 270,
+          "y": 36,
+          "w": 500,
+          "h": 38,
+          "content": "Prototype workspace",
+          "size": 28,
+          "color": "#0F172A",
+          "weight": 700
+        },
+        {
+          "kind": "text",
+          "x": 270,
+          "y": 80,
+          "w": 580,
+          "h": 24,
+          "content": "An authored example. Verify native output separately.",
+          "size": 14,
+          "color": "#64748B",
+          "weight": 400
+        },
+        {
+          "kind": "rect",
+          "x": 270,
+          "y": 140,
+          "w": 240,
+          "h": 122,
+          "fill": "#FFFFFF",
+          "corners": 12
+        },
+        {
+          "kind": "text",
+          "x": 292,
+          "y": 159,
+          "w": 190,
+          "h": 24,
+          "content": "Pages",
+          "size": 14,
+          "color": "#64748B",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 292,
+          "y": 189,
+          "w": 190,
+          "h": 46,
+          "content": "03",
+          "size": 36,
+          "color": "#0F172A",
+          "weight": 700
+        },
+        {
+          "kind": "rect",
+          "x": 530,
+          "y": 140,
+          "w": 240,
+          "h": 122,
+          "fill": "#FFFFFF",
+          "corners": 12
+        },
+        {
+          "kind": "text",
+          "x": 552,
+          "y": 159,
+          "w": 190,
+          "h": 24,
+          "content": "Widgets",
+          "size": 14,
+          "color": "#64748B",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 552,
+          "y": 189,
+          "w": 190,
+          "h": 46,
+          "content": "12",
+          "size": 36,
+          "color": "#0F172A",
+          "weight": 700
+        },
+        {
+          "kind": "rect",
+          "x": 790,
+          "y": 140,
+          "w": 240,
+          "h": 122,
+          "fill": "#FFFFFF",
+          "corners": 12
+        },
+        {
+          "kind": "text",
+          "x": 812,
+          "y": 159,
+          "w": 190,
+          "h": 24,
+          "content": "Interactions",
+          "size": 14,
+          "color": "#64748B",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 812,
+          "y": 189,
+          "w": 190,
+          "h": 46,
+          "content": "04",
+          "size": 36,
+          "color": "#0F172A",
+          "weight": 700
+        },
+        {
+          "kind": "rect",
+          "x": 270,
+          "y": 292,
+          "w": 760,
+          "h": 280,
+          "fill": "#FFFFFF",
+          "corners": 12
+        },
+        {
+          "kind": "text",
+          "x": 294,
+          "y": 311,
+          "w": 500,
+          "h": 29,
+          "content": "Validation steps",
+          "size": 19,
+          "color": "#0F172A",
+          "weight": 700
+        },
+        {
+          "kind": "text",
+          "x": 294,
+          "y": 364,
+          "w": 500,
+          "h": 25,
+          "content": "Structure and semantic fields",
+          "size": 15,
+          "color": "#334155",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 884,
+          "y": 364,
+          "w": 120,
+          "h": 22,
+          "content": "CHECK",
+          "size": 12,
+          "color": "#2563EB",
+          "weight": 700
+        },
+        {
+          "kind": "line",
+          "x1": 294,
+          "y1": 398,
+          "x2": 1006,
+          "y2": 398,
+          "color": "#E2E8F0"
+        },
+        {
+          "kind": "text",
+          "x": 294,
+          "y": 409,
+          "w": 500,
+          "h": 25,
+          "content": "Native loading",
+          "size": 15,
+          "color": "#334155",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 884,
+          "y": 409,
+          "w": 120,
+          "h": 22,
+          "content": "VERIFY",
+          "size": 12,
+          "color": "#2563EB",
+          "weight": 700
+        },
+        {
+          "kind": "line",
+          "x1": 294,
+          "y1": 443,
+          "x2": 1006,
+          "y2": 443,
+          "color": "#E2E8F0"
+        },
+        {
+          "kind": "text",
+          "x": 294,
+          "y": 454,
+          "w": 500,
+          "h": 25,
+          "content": "Preview interactions",
+          "size": 15,
+          "color": "#334155",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 884,
+          "y": 454,
+          "w": 120,
+          "h": 22,
+          "content": "VERIFY",
+          "size": 12,
+          "color": "#2563EB",
+          "weight": 700
+        },
+        {
+          "kind": "line",
+          "x1": 294,
+          "y1": 488,
+          "x2": 1006,
+          "y2": 488,
+          "color": "#E2E8F0"
+        },
+        {
+          "kind": "text",
+          "x": 294,
+          "y": 499,
+          "w": 500,
+          "h": 25,
+          "content": "Edit, save and reopen",
+          "size": 15,
+          "color": "#334155",
+          "weight": 400
+        },
+        {
+          "kind": "text",
+          "x": 884,
+          "y": 499,
+          "w": 120,
+          "h": 22,
+          "content": "VERIFY",
+          "size": 12,
+          "color": "#2563EB",
+          "weight": 700
+        },
+        {
+          "kind": "text",
+          "x": 270,
+          "y": 604,
+          "w": 700,
+          "h": 22,
+          "content": "Generated from the public JSON specification; no personal or repository data.",
+          "size": 12,
+          "color": "#64748B",
+          "weight": 400
+        }
+      ]
+    }
+  ]
+}
