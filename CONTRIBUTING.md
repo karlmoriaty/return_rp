@@ -33,6 +33,16 @@ Do not commit official templates/binaries/runtime, fonts, extracted materials, p
 
 `node scripts/pack-release.mjs -o <new-directory>` includes Python, Swift, original images, synthetic fixtures, examples and benchmarks. It excludes symlinks, dependencies, caches and native binaries. Refresh source fingerprints after intentional changes; do not rewrite semantic snapshots to conceal failures.
 
+## Sending a change
+
+1. Fork the repository and create a topic branch from `main`.
+2. Make the change and keep unrelated work out of the same branch.
+3. Run `npm test` (Axure-dependent suites skip themselves when prerequisites are absent; a skipped check is not a pass).
+4. Add a line to `CHANGELOG.md` under the current version for user-visible changes.
+5. Open a pull request against `karlmoriaty/return_rp:main` and describe what changed and how it was verified.
+
+There is no CLA or DCO requirement. By contributing you agree your changes are licensed under the project's MIT license, and any new media or fixture you add must carry a compatible license and attribution.
+
 ## Feedback
 
 Original author / maintainer: **karlmoriaty** (https://github.com/karlmoriaty).

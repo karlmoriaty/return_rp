@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 — 2026-11-13
 
 - 项目统一更名为 `return_rp`：包名、命令名、文档与素材引用全部替换；原作者 / 维护者署名为 karlmoriaty，问题反馈邮箱 3070687583@qq.com。
 - 新增 RP 9 / RP 11 能力矩阵与对齐门禁（RP 9 必须覆盖 RP 11）：`scripts/version-capabilities.mjs`、`test/version-parity-check.mjs`，并接入 `npm test`；RP 9 的严格三零校验不再受 RP 11 `(节点#N)` 占位页豁免影响。
+- 标准化 MIT 许可证文本；补充贡献流程（fork / 分支 / PR / 测试要求）与第三方素材许可说明；移除失效的宣传片下载链接。
 
 - 修复原生 tab-bar 激活/未激活项的文字垂直对齐，离线预览读取真实对齐属性并增加结构门禁。
 - GUI 首次文档未就绪时有界重试；失败仅清理未打开且未变更的任务副本，避免重试被遗留输出阻塞。

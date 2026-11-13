@@ -72,7 +72,7 @@ Generate a native **`.rp`** and continue editing supported text, controls and la
 | **Axure** | Native objects and supported interactions to keep editing |
 | **The browser** | Runnable previews, plus standalone HTML / CSS / JS export |
 
-[Native export and sync](docs/studio-native-roundtrip.md)　↗　[Code export](docs/studio-code-export.md)　↗　[40-second workflow animation](https://github.com/karlmoriaty/return_rp/releases/download/v0.2.1/return_rp-zhixu-1080p60.mp4)
+[Native export and sync](docs/studio-native-roundtrip.md)　↗　[Code export](docs/studio-code-export.md)
 
 <br>
 

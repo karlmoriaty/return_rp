@@ -72,7 +72,7 @@ page #notes name="手记" device=iphone-17-pro
 | **Axure** | 打开原生工程，继续编辑元件与支持的交互 |
 | **浏览器** | 运行预览；也可导出独立 HTML / CSS / JS |
 
-[原生导出与回填](docs/studio-native-roundtrip.md)　↗　[代码导出](docs/studio-code-export.md)　↗　[40 秒流程动画](https://github.com/karlmoriaty/return_rp/releases/download/v0.2.1/return_rp-zhixu-1080p60.mp4)
+[原生导出与回填](docs/studio-native-roundtrip.md)　↗　[代码导出](docs/studio-code-export.md)
 
 <br>
 
