@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.3 — 2026-11-14
+
+- 修复 `test/parity-check.mjs` 在 Windows 上整批误报内核脚本 SHA 不符：baseline 按 LF 归一化后的源码内容比对，二进制对拍仍用原始字节。
+- `test/baseline-policy.json` 的脚本数量从 64 更新为 65，与 `test/baseline-shas.json` 和 `scripts/*.mjs` 实际数量一致。
+
 ## 1.3.2 — 2026-11-14
 
 - Windows 原生宿主：新增 `scripts/axure-host.ps1`，自动完成打开自有副本 → 保存 → 关闭 → 重开 → F5 预览，并按端口与 `start.html` 内容确认预览归属；RP 9 与 RP 11 均实测往返与预览。

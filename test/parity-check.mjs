@@ -40,6 +40,8 @@ function execNode(first, args, { env } = {}) {
 }
 
 const sha256 = file => createHash('sha256').update(readFileSync(file)).digest('hex');
+// baseline 针对源码内容（LF 归一化）计算，避免 Windows 检出把 CRLF 当成代码变更。
+const sourceSha256 = file => createHash('sha256').update(readFileSync(file, 'utf8').replaceAll('\r\n', '\n')).digest('hex');
 
 // 对拍/回归不受白名单影响：清掉外部可能存在的 AXURE_WRITE_ROOT，白名单用例单独注入。
 const baseEnv = { ...process.env };
@@ -217,7 +219,7 @@ for (const rel of ['scripts/registry.mjs', 'scripts/engine.mjs', 'bin/axure.mjs'
     const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
     const names = Object.keys(baseline);
     const mismatched = names.filter(n => {
-      try { return sha256(join(SCRIPTS, n)) !== baseline[n]; } catch { return true; }
+      try { return sourceSha256(join(SCRIPTS, n)) !== baseline[n]; } catch { return true; }
     });
     passed = names.length === EXPECTED_SCRIPT_COUNT && mismatched.length === 0;
     detail = `清单 ${names.length} 项${mismatched.length ? `，不符：${mismatched.join('、')}` : ''}`;
