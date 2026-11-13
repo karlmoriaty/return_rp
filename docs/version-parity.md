@@ -29,12 +29,12 @@
 | 应用样式动作 | explicit-diagnostic | supported | RP 9 无 `InteractionApplyStyle` 类型 |
 | RP 11 专属事件 | explicit-diagnostic | supported | `OnErrorSet` / `OnErrorRemoved` / `OnBeforeItemLoad` |
 | RP 11 专属表达式函数 | explicit-diagnostic | supported | `ToLowerCase` / `GetErrorState` / `SetErrorState` |
-| 清除其他排序 | explicit-diagnostic | supported | `remove-all-sorts` 为 RP 11 键 |
-| 过滤组合类型 | explicit-diagnostic | supported | `FilterComboType` 为 RP 11 键 |
-| 按行号删除中继器行 | explicit-diagnostic | supported | `RowIndices*` 为 RP 11 键 |
+| 清除其他排序 | supported | supported | RP 9 拆为前置 `remove-sort(remove-all)` 动作 |
+| 过滤组合类型 | partial | supported | RP 9 无 `FilterComboType`；单条件动作按顺序过滤（AND） |
+| 按行号删除中继器行 | partial | supported | RP 9 改写为 `TargetItem.index` 规则，运行时待预览实测 |
 | Studio 局部 RP/1 创作 | supported | supported | 按文档 `target` 包装片段，9 / 11 同一套校验 |
 | 自动 Axure 预览 | supported | partial | 仅 macOS；RP 11 目标走同一 GUI 往返，尚未端到端验证 |
-| 图片离线生成原生工程 | supported | gui-only | RP 11 需 `axvg` GUI 粘贴，不离线写二进制 |
+| 图片离线生成原生工程 | supported | supported | 两版都离线写二进制；RP 11 使用本机空白模板 |
 | CLI / MCP 入口 | supported | supported | 两版共用同一批工具 |
 | 版本专属键 lint | supported | supported | 按文件头版本扫描 |
 
@@ -46,14 +46,18 @@
 | :--- | :--- | :--- |
 | 面板注册链修复 @ RP 11 | not-applicable | RP 11 没有 `DynamicPanelInfo` / `PanelDiagramInfo` |
 | 自动预览 @ RP 11 | partial | 仅 macOS，RP 11 目标尚未端到端验证 |
-| 图片离线生成 @ RP 11 | gui-only | 目前走 `axvg` GUI 粘贴 |
-| 缩放锚点 / 切换启用 / 应用样式 / RP 11 事件与函数 / 三个中继器键 @ RP 9 | explicit-diagnostic | RP 9 原生结构或运行时没有对应模型 |
+| 缩放锚点 / 切换启用 / 应用样式 / RP 11 事件与函数 @ RP 9 | explicit-diagnostic | RP 9 原生结构或运行时没有对应模型 |
+| 过滤组合类型 @ RP 9 | partial | 无 `FilterComboType` 键；单条件顺序过滤等价于 AND |
+| 按行号删除 @ RP 9 | partial | 改写为 `TargetItem.index` 规则，运行时未在 RP 9 预览实测 |
 
 ## 验证
 
 ```sh
 node test/version-parity-check.mjs
 node test/native-repeater-versions-check.mjs   # 需本机 Axure 安装与 Python Pillow，缺依赖时 SKIP
+node test/native-form-style-versions-check.mjs # 同上
+node test/repeater-action-parity-check.mjs     # removeAll / comboType / rowIndices 两版对齐
+node test/image-generate-versions-check.mjs   # 图片离线生成本地 RP 9 / RP 11 一致
 ```
 
 测试会检查：

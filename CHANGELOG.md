@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0 — 2026-11-13
+
+- 图片离线生成支持 RP 11：`generate_from_image` 的 `version: 11` 不再返回 `E_RP11_GUI_PASTE_REQUIRED`，改为使用本机 RP 11 空白模板走同一套原生场景写入与页面装配，输出可编辑二进制 `.rp`；`guiPaste: true` 仍保留 GUI 粘贴路径。
+- OCR 跨平台降级：非 macOS 环境没有 Apple Vision / Swift 时自动跳过文字识别，仅做几何分层，不再因缺少 `swift` 中止整条图片转原型流程。
+- RP 9 中继器动作补齐三个 RP 11 键的语义：`removeAll` 拆为前置 `remove-sort(remove-all)` 动作；`rowIndices` 改写为 `TargetItem.index` 规则（删除与更新都覆盖）；`comboType` 在单条件动作下无差异，记录具名适配后省略键。
+- 能力矩阵：`repeater-sort-remove-all` 升为两版 `supported`，`repeater-filter-combo-type` / `repeater-delete-row-indices` 的 RP 9 侧升为 `partial`，`offline-image-generate` 的 RP 11 侧升为 `supported`；同步更新缺口台账与诊断证据。
+- 新增 `test/image-generate-versions-check.mjs`（`npm run test:image-versions`）：同一张截图分别生成 RP 9 / RP 11，校验文件头、元件数量一致与三零结构。
+- 新增 `test/repeater-action-parity-check.mjs`（`npm run test:repeater-actions`）：分别构建 RP 9 / RP 11 中继器并写入三种动作，逐字段核对两版实际落盘的键与拆分动作。
+- 本机验证：图片生成两版均 29 个元件、`problems=0`、`danglingRefs=0`；中继器动作测试两版通过。
+
 ## 1.2.2 — 2026-11-13
 
 - 原生表单状态样式支持 RP 11：两版 `Axure:Style` 结构一致，`applyNativeWidgetStyles` 不再在 RP 11 上跳过整段状态样式，按目标版本读取本机 `DefaultStyle` 后写入 Hover / Selected / Disabled / Focused 等状态。

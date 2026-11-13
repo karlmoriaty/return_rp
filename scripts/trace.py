@@ -1315,6 +1315,9 @@ def run_ocr(image_path):
     """带 SHA1 结果缓存与编译二进制缓存的 Apple Vision OCR 调用（编译缓存冷跑 ~180ms，结果缓存 < 1ms）。"""
     if not os.path.exists(OCR_SWIFT):
         return {"items": []}
+    # Apple Vision OCR 只存在于 macOS；其他平台退化为纯几何分层（无文字识别）。
+    if not shutil.which("swiftc") and not shutil.which("swift"):
+        return {"items": []}
     cache_path = None
     bin_path = None
     try:

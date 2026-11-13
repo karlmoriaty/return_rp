@@ -1978,18 +1978,8 @@ function generateFromImage({
     const axvgPayload = expandSpec(traceSpec);
     writeFileSync(axvgPath, JSON.stringify(axvgPayload, null, 2) + '\n');
 
-    if (version === 11) {
+    if (version === 11 && guiPaste) {
       stage = 'rp11_paste';
-      if (!guiPaste) {
-        return {
-          status: 'failed',
-          stage,
-          code: 'E_RP11_GUI_PASTE_REQUIRED',
-          message: 'RP11 原生格式使用 SQLite 单库，不支持离线直接写出二进制 .rp；已在 artifacts 中生成 RP11 专用 .axvg.json 与分层 spec，请在 Axure RP 11 打开目标工程后设置 guiPaste=true 或调用 axvg_paste 放置。',
-          version: 11,
-          artifacts: { directory: artifactDir, assetsDir, image: imagePath, spec: specPath, axvg: axvgPath },
-        };
-      }
       const pasteResult = pasteAxvg(axvgPayload, { version: 11 });
       return {
         status: 'completed',
@@ -2001,10 +1991,10 @@ function generateFromImage({
       };
     }
 
-    stage = 'rp9_spec';
+    stage = 'native_spec';
     const rp9Proc = spawnSync('python3', [TRACE_PY, 'rp9-spec', specPath, '-o', rp9SpecPath, '--assets-dir', assetsDir], { encoding: 'utf8' });
     if (rp9Proc.status !== 0 || !pathExists(rp9SpecPath)) {
-      throw Object.assign(new Error(`转换 RP9 原生场景规格失败：${(rp9Proc.stderr || rp9Proc.stdout || '').trim()}`), { code: 'E_RP9_SPEC' });
+      throw Object.assign(new Error(`转换原生场景规格失败：${(rp9Proc.stderr || rp9Proc.stdout || '').trim()}`), { code: 'E_NATIVE_SPEC' });
     }
     const rp9Meta = JSON.parse(procStdoutJson(rp9Proc.stdout) || '{}');
     const rp9Spec = JSON.parse(readFileSync(rp9SpecPath, 'utf8'));
@@ -2015,7 +2005,7 @@ function generateFromImage({
     stage = 'native_write';
     const stagedBlank = join(artifactDir, 'blank.rp');
     const stagedRp = join(artifactDir, 'output.rp');
-    createBlankProject(stagedBlank, { version: 9 });
+    createBlankProject(stagedBlank, { version });
     const sceneBytes = writeNativeScene(readFileSync(stagedBlank), rp9Axvg);
     const writtenBytes = mergePages([{ buf: sceneBytes, name: page || '图片还原页' }]);
     writeFileSync(stagedRp, writtenBytes);
@@ -2030,7 +2020,8 @@ function generateFromImage({
     stage = 'verify_diff';
     const refSource = imagePath || (traceSpec.reference && pathExists(traceSpec.reference) ? traceSpec.reference : null);
     let previewImgPath = typeof preview === 'string' && pathExists(resolve(preview)) ? resolve(preview) : null;
-    if (!previewImgPath && preview === true && process.platform === 'darwin') {
+    // 自动宿主截图绑定 macOS 的 Axure RP 9；RP 11 请显式传 preview=<截图路径>。
+    if (!previewImgPath && preview === true && process.platform === 'darwin' && version === 9) {
       const autoCapPath = join(artifactDir, 'host-window-capture.png');
       const swiftCap = `
 import AppKit
@@ -2129,7 +2120,7 @@ if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIden
       outputRp: output,
       rpSha256: outSha256,
       scale: traceSpec.scale ?? effectiveScale,
-      version: 9,
+      version,
       pageName: rp.pages[0]?.name ?? page,
       sourceMap,
       reviewRegions: rp9Meta.reviewRegions ?? {},
@@ -2140,8 +2131,8 @@ if let app = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIden
 
     return {
       status: 'completed',
-      backend: 'rp9-native-scene',
-      version: 9,
+      backend: `rp${version}-native-scene`,
+      version,
       output,
       sha256: outSha256,
       baseline: baselinePath,
@@ -2458,12 +2449,12 @@ export const sessionTools = [
   },
   {
     name: 'generate_from_image',
-    description: '高层图片转原型入口：从本地 UI 截图（或已提取的分层 spec）自动执行 Apple Vision OCR、几何卡片/分割线/图标媒体切片识别、可选文案替换（replace），并在 RP9 下直接写出真实可编辑二进制 .rp（文字、矩形、卡片、圆、分割线为独立原生元件，复杂矢量/图表/裁剪媒体为独立透明 PNG ImageBox，素材持久保存在 <output>.assets 目录），同时记录 <output>.baseline.json 与分层校验摘要。',
+    description: '高层图片转原型入口：从本地 UI 截图（或已提取的分层 spec）自动执行 Apple Vision OCR、几何卡片/分割线/图标媒体切片识别、可选文案替换（replace），并在 RP9 / RP11 下离线直接写出真实可编辑二进制 .rp（文字、矩形、卡片、圆、分割线为独立原生元件，复杂矢量/图表/裁剪媒体为独立透明 PNG ImageBox，素材持久保存在 <output>.assets 目录），同时记录 <output>.baseline.json 与分层校验摘要。',
     inputSchema: { type: 'object', properties: {
       image: { type: 'string', minLength: 1, description: '本地截图文件绝对路径（PNG/JPG）。' },
       spec: { oneOf: [{ type: 'string', minLength: 1 }, { type: 'object' }], description: '可选：已校对的分层 trace spec 路径或对象（用于二次校对后重建）。' },
       output: { type: 'string', minLength: 1, description: '新生成的二进制 .rp 绝对路径（只写新文件，不覆盖）。' },
-      version: { type: 'integer', enum: [9, 11], description: '目标 Axure 版本，默认 9（直接写二进制 .rp）；11 生成 .axvg.json 并需 GUI 粘贴。' },
+      version: { type: 'integer', enum: [9, 11], description: '目标 Axure 版本，默认 9；9 和 11 都离线直接写出二进制 .rp（11 需本机 RP11 空白模板）。' },
       scale: { type: 'number', minimum: 0.25, maximum: 4, description: '截图逻辑像素缩放比（如 1 表示 1x，2 表示 Retina 2x）；省略时默认 2。' },
       page: { type: 'string', minLength: 1, description: '生成的目标页面/画板名称，默认「图片还原页」。' },
       replace: {
@@ -2479,7 +2470,7 @@ export const sessionTools = [
       baseRp: { type: 'string', minLength: 1, description: '可选：上次生成的 .rp 路径；若检测到已有原生改稿且 prefer=fail，则拒绝静默覆盖。' },
       prefer: { type: 'string', enum: ['fail', 'source', 'native'], description: '当 baseRp 有原生改稿时的保护策略，默认 fail。' },
       preview: { oneOf: [{ type: 'boolean' }, { type: 'string', minLength: 1 }], description: '可选：传入真实 Axure 预览截图路径（或布尔值）进行宿主预览与薄页/原图的像素差分。' },
-      guiPaste: { type: 'boolean', description: '当 version=11 时是否立即执行 Axure RP 11 GUI 粘贴，默认 false。' },
+      guiPaste: { type: 'boolean', description: '当 version=11 时改为走 Axure RP 11 GUI 粘贴（默认 false，走离线原生写入）。' },
     }, required: ['output'], additionalProperties: false },
     handler: sessionHandlers.generate_from_image,
   },

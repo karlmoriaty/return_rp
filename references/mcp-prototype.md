@@ -120,12 +120,13 @@
   "scale": 2,
   "page": "首页还原",
   "replace": ["旧文案=新文案", { "old": "错字", "new": "正字" }],
-  "preview": true
+  "version": 11,
+  "preview": "/绝对路径/window.png"
 }
 ```
 
-- 自动执行 Apple Vision OCR、几何卡片/分割线/圆形识别、独立图标/复杂媒体切片提取（持久化在 `<output>.assets/`）、单行替换超宽自动扩宽防折行，并在 RP9 下直接写出可编辑二进制 `.rp`（附带 `<output>.baseline.json` 与 `visualDiff` 分层校验摘要）。
-- 支持传入 `baseRp` 检测原生改稿防静默覆盖（`E_NATIVE_DRIFT_PROTECTED`），以及 `preview: true`（在 macOS 自动截取 Axure RP 9 宿主窗口）或 `preview: "/绝对路径/window.png"` 执行宿主预览像素差分。
+- 自动执行 Apple Vision OCR（macOS；其他平台自动退化为纯几何分层）、几何卡片/分割线/圆形识别、独立图标/复杂媒体切片提取（持久化在 `<output>.assets/`）、单行替换超宽自动扩宽防折行，并在 RP 9 / RP 11 下离线直接写出可编辑二进制 `.rp`（附带 `<output>.baseline.json` 与 `visualDiff` 分层校验摘要）。RP 11 需要本机空白模板（`AXURE_BLANK_TEMPLATE_RP11`），`version: 11` 不再要求 GUI 粘贴。
+- 支持传入 `baseRp` 检测原生改稿防静默覆盖（`E_NATIVE_DRIFT_PROTECTED`），以及 `preview: "/绝对路径/window.png"` 执行宿主预览像素差分。`preview: true` 的自动宿主截图目前仅绑定 macOS 的 Axure RP 9；RP 11 请传截图路径，或显式设置 `guiPaste: true` 走 GUI 粘贴。
 
 ---
 

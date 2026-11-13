@@ -310,6 +310,14 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
     }
     throw new Error(`Repeater column "${columnName}" not found`);
   };
+  // RP 9 没有 RowIndicesText / RowIndicesRule；按 1 起行号改写成 TargetItem.index 规则。
+  const rowIndexRuleText = value => {
+    const raw = Array.isArray(value) ? value : String(value).split(/[\s,]+/).filter(Boolean);
+    const nums = [...new Set(raw.map(Number))];
+    if (!nums.length || nums.some(n => !Number.isInteger(n) || n < 1))
+      throw new Error(`rowIndices 必须是 1 起的正整数行号，收到：${JSON.stringify(value)}`);
+    return `[[${nums.map(n => `TargetItem.index == ${n}`).join(' || ')}]]`;
+  };
   const globalVariableInfo = variableName => {
     const doc = readRecords(file).find(record => record.className === 'Axure:DesignDocument');
     if (!doc) throw new Error('No DesignDocument record for global variable lookup');
@@ -992,15 +1000,12 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
         if (type === 'repeater-sort') {
           // RP 9 的 AddSortToRepeaterInfo writer 只有 ascending / column-id / column-name /
           // label / sort-type / toggle（REA 0x060089f4），没有 remove-all-sorts。
-          // 静默丢掉会让「清除其它排序」这个意图无声消失，所以按版本明确拒绝。
-          if (targetVersion === 9 && spec.removeAll) {
-            throw new Error('repeater-sort 的 removeAll（remove-all-sorts）是 RP 11 专属能力，RP 9 无对应键，已明确拒绝');
-          }
+          // 清除意图已由调用方拆成前置 RemoveSort(remove-all) 动作，这里不再写该键。
           const sortInfo = info('Axure:AddSortToRepeaterInfo', {
             label: str(spec.label ?? ''), 'column-id': guidRef(repeaterColumnId(repeater, spec.column)),
             'column-name': str(spec.column ?? ''), ascending: bool(!!spec.ascending),
             toggle: bool(!!spec.toggle), 'sort-type': int(num(spec.sortType ?? 1)),
-            'remove-all-sorts': bool(!!spec.removeAll)
+            ...(targetVersion === 9 ? {} : { 'remove-all-sorts': bool(!!spec.removeAll) })
           });
           return obj(newGuid(), 'Axure:InteractionAddSortToRepeaterAction', {
             Disabled: bool(false), panelobjectpaths: list([ref(path.id)]),
@@ -1029,8 +1034,11 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
           // 过滤条件必须放进 Filter 自身；RP 11 才另立 Condition 等键。
           // ⚠ 这里必须「搬值」而不是「丢键」：若照旧写空字面量，版本适配会把条件整个丢掉，
           //   产出键集与 RP 9 原生一模一样、却是个空操作 —— 三零与 version-lint 都查不出这种静默损坏。
+          // RP 9 的 AddFilterToRepeaterInfo 没有 FilterComboType（多条件 AND/OR 组合）。
+          // 本接口每个动作只带一条条件，组合类型不产生可观察差异；RP 9 的顺序过滤天然是 AND。
+          // 显式记录适配，避免 comboType 被静默丢弃而无人知道。
           if (targetVersion === 9 && spec.comboType !== undefined) {
-            throw new Error('repeater-filter 的 comboType 是 RP 11 专属键（RP 9 的 AddFilterToRepeaterInfo 无对应）');
+            versionAdaptations.push('repeater-filter 的 comboType 在 RP 9 上无对应键；单条件动作按 RP 9 顺序过滤（AND）执行');
           }
           // RP 9 的 Filter 是 **StringLiteral，装整个 [[...]] 表达式**，不是表达式树：
           //   原生真值 Sample UI Patterns.rplib obj#359/628/46/833，value 形如
@@ -1059,7 +1067,7 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
             Filter: ref(targetVersion === 9 ? filterExprId : literal('').id),
             UseCondition: bool(!!spec.condition),
             Condition: ref(condition.id),
-            FilterComboType: int(num(spec.comboType ?? 2)),
+            ...(targetVersion === 9 ? {} : { FilterComboType: int(num(spec.comboType ?? 2)) }),
             ColumnName: str(spec.column ?? ''),
             ColumnId: guidRef(columnId)
           });
@@ -1192,8 +1200,20 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
         }
         if (type === 'repeater-delete-items') {
           // spec: target=R7 column=First_Name value=Bob（自动拼规则）或 rule="[[...]]" + column=
-          const ruleText = spec.rule ?? `[[TargetItem.${spec.column} == '${spec.value}']]`;
-          const colVid = spec.predicate ? null : repeaterColumnId(repeater, spec.column);
+          // RP 9 的 DeleteItemsFromDataSetInfo writer 只有 Rule / SelectionType（REA 0x06008a2b），
+          // 没有 RowIndicesText / RowIndicesRule。行号在 RP 9 上改写成 TargetItem.index 规则：
+          // 语义相同（按 1 起行号选行），但运行时行为仍需 RP 9 预览实测。
+          // 只给行号（没有列/规则）时，两版都用 TargetItem.index 规则选行；
+          // RP 11 另外保留 RowIndicesText，RP 9 只有规则可用。
+          const rowIndexMode = spec.rowIndices !== undefined && !spec.predicate && !spec.rule
+            && (targetVersion === 9 || !spec.column);
+          if (targetVersion === 9 && spec.rowIndices !== undefined && !rowIndexMode)
+            throw new Error('RP 9 上 rowIndices 与 rule/predicate 不能同时使用，请二选一');
+          if (rowIndexMode && targetVersion === 9) versionAdaptations.push('rowIndices 在 RP 9 上改写为 TargetItem.index 规则');
+          const ruleText = rowIndexMode
+            ? rowIndexRuleText(spec.rowIndices)
+            : (spec.rule ?? `[[TargetItem.${spec.column} == '${spec.value}']]`);
+          const colVid = (spec.predicate || rowIndexMode) ? null : repeaterColumnId(repeater, spec.column);
           const actionId = newGuid(), pathId = newGuid(), infoId = newGuid(), litId = newGuid(), identId = newGuid();
           const delAction = obj(actionId, 'Axure:InteractionDeleteItemsFromDataSetAction', {
             Disabled: bool(false), panelobjectpaths: list([ref(pathId)]),
@@ -1202,21 +1222,15 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
           obj(pathId, 'Axure:DiagramObjectPath', {
             'rdo-path': list([]), 'repeater-path': list([]), 'object-id': guidRef(repeater.id), 'is-dummy': bool(false)
           });
-          // RP 9 的 DeleteItemsFromDataSetInfo writer 只有 Rule / SelectionType（REA 0x06008a2b），
-          // 没有 RowIndicesText / RowIndicesRule。行序号只落在 RowIndicesText 里，静默丢掉会让
-          // 删除按 Rule 表达式选行 —— 选错行，所以按版本明确拒绝。
-          if (targetVersion === 9 && spec.rowIndices !== undefined) {
-            throw new Error('rowIndices 是 RP 11 专属键（RP 9 的 DataSetInfoWithRowSelection 只有 Rule/SelectionType），已明确拒绝；RP 9 上请改用 rule=<[[]]> 指定规则');
-          }
           obj(infoId, 'Axure:DeleteItemsFromDataSetInfo', {
             SelectionType: int(num(spec.selectionType ?? 2)), Rule: ref(spec.predicate ? runtimeValue(spec.predicate, {targetRows:true}).id : litId),
-            RowIndicesText: str(String(spec.rowIndices ?? '')), RowIndicesRule: ref(nullId)
+            ...(targetVersion === 9 ? {} : { RowIndicesText: str(String(spec.rowIndices ?? '')), RowIndicesRule: ref(nullId) })
           });
           if (!spec.predicate) obj(litId, 'Axure:Expr:StringLiteral', {
-            value: str(ruleText), 'variable-identifiers': list([ref(identId)]),
+            value: str(ruleText), 'variable-identifiers': list(rowIndexMode ? [] : [ref(identId)]),
             scope: dict([]), 'repeater-scope': ref(nullId), TargetRepeaterScope: ref(repData.id)
           });
-          if (!spec.predicate) obj(identId, 'Axure:Expr:TextVariableIdentifier', {
+          if (!spec.predicate && !rowIndexMode) obj(identId, 'Axure:Expr:TextVariableIdentifier', {
             Id: { tag: 0x11, value: colVid }, Name: str(`TargetTargetItem.${spec.column}`),
             Expr: ref(litId), TargetOverride: bool(true)
           });
@@ -1236,8 +1250,15 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
         if (new Set(updates.map(u => u.column)).size !== updates.length)
           throw new Error('repeater-update-items updates must use each column only once');
         const updateColumnIds = updates.map(u => repeaterColumnId(repeater, u.column));
-        const ruleText = spec.rule ?? `[[TargetItem.${spec.column} == '${spec.value}']]`;
-        const ruleVid = spec.predicate ? null : repeaterColumnId(repeater, spec.column);
+        const updateIndexMode = spec.rowIndices !== undefined && !spec.predicate && !spec.rule
+          && (targetVersion === 9 || !spec.column);
+        if (targetVersion === 9 && spec.rowIndices !== undefined && !updateIndexMode)
+          throw new Error('RP 9 上 rowIndices 与 rule/predicate 不能同时使用，请二选一');
+        if (updateIndexMode && targetVersion === 9) versionAdaptations.push('rowIndices 在 RP 9 上改写为 TargetItem.index 规则');
+        const ruleText = updateIndexMode
+          ? rowIndexRuleText(spec.rowIndices)
+          : (spec.rule ?? `[[TargetItem.${spec.column} == '${spec.value}']]`);
+        const ruleVid = (spec.predicate || updateIndexMode) ? null : repeaterColumnId(repeater, spec.column);
         const actionId = newGuid(), pathId = newGuid(), infoId = newGuid();
         const ruleLitId = newGuid(), identId = newGuid();
         const valueLiteralIds = updates.map(u => u.runtime ? runtimeValue(u.runtime, {targetRows:true}).id : newGuid());
@@ -1253,7 +1274,7 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
         });
         obj(infoId, 'Axure:UpdateEditItemsInDataSetInfo', {
           SelectionType: int(num(spec.selectionType ?? 2)), Rule: ref(spec.predicate ? runtimeValue(spec.predicate, {targetRows:true}).id : ruleLitId),
-          RowIndicesText: str(String(spec.rowIndices ?? '')), RowIndicesRule: ref(nullId),
+          ...(targetVersion === 9 ? {} : { RowIndicesText: str(String(spec.rowIndices ?? '')), RowIndicesRule: ref(nullId) }),
           'column-names': list(updates.map(u => str(u.column))),
           'update-data': list(updates.map((u, i) => dict([
             [str('Type'), int(3)], [str('Text'), str(u.value)], [str('Literal'), ref(valueLiteralIds[i])]
@@ -1261,10 +1282,10 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
           actual: list(updateColumnIds.map(guidRef))
         });
         if (!spec.predicate) obj(ruleLitId, 'Axure:Expr:StringLiteral', {
-          value: str(ruleText), 'variable-identifiers': list([ref(identId)]),
+          value: str(ruleText), 'variable-identifiers': list(updateIndexMode ? [] : [ref(identId)]),
           scope: dict([]), 'repeater-scope': ref(nullId), TargetRepeaterScope: ref(repData.id)
         });
-        if (!spec.predicate) obj(identId, 'Axure:Expr:TextVariableIdentifier', {
+        if (!spec.predicate && !updateIndexMode) obj(identId, 'Axure:Expr:TextVariableIdentifier', {
           Id: { tag: 0x11, value: ruleVid }, Name: str(`TargetTargetItem.${spec.column}`),
           Expr: ref(ruleLitId), TargetOverride: bool(true)
         });
@@ -1675,6 +1696,7 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
     const eventNodeId = replaceTarget?.node.id ?? newGuid();
     const eventId = replaceTarget?.event.id ?? newGuid();
     const caseNodeIds = [];
+    const reportCases = [];
 
     if (replaceTarget) {
       const oldNodeIds = new Set();
@@ -1702,9 +1724,20 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
     }
 
     for (const c of cases) {
-      const actionSpecs = c.actions ?? [];
+      // RP 9 的 AddSortToRepeaterInfo 没有 remove-all-sorts 键，但 RP 9 本身有
+      // RemoveSortFromRepeaterAction(remove-all)。把「先清除其它排序」拆成前面一个独立动作，
+      // 语义与 RP 11 的 remove-all-sorts 一致，而不是把意图静默丢掉。
+      const actionSpecs = targetVersion === 9
+        ? (c.actions ?? []).flatMap(spec => {
+            const t = String(spec.type ?? spec.action ?? '').toLowerCase();
+            if (t !== 'repeater-sort' || (!spec.removeAll && !spec['remove-all-sorts'])) return [spec];
+            versionAdaptations.push('repeater-sort 的 removeAll 在 RP 9 上拆为 remove-sort(remove-all) + sort');
+            return [{ type: 'remove-sort', target: spec.target, widget: spec.widget, removeAll: true }, spec];
+          })
+        : (c.actions ?? []);
       const caseNodeId = newGuid(), caseId = newGuid();
       caseNodeIds.push(caseNodeId);
+      reportCases.push({ description: c.description, actions: actionSpecs.map(s => s.type ?? s.action) });
       const actionNodeIds = actionSpecs.map(() => newGuid());
 
       obj(caseNodeId, 'Axure:Node', { children: list(actionNodeIds.map(id => ref(id))), 'parent-node': ref(eventNodeId), tree: ref(treeId) });
@@ -1729,7 +1762,7 @@ export function addInteractions(file, target, interactions, { replaceEvent = fal
     } else {
       field(replaceTarget.node.body, 'children').items = caseNodeIds.map(id => ref(id));
     }
-    added.push({ event: eventName, eventType, replaced: !!replaceTarget, cases: cases.map(c => ({ description: c.description, actions: (c.actions ?? []).map(s => s.type) })) });
+    added.push({ event: eventName, eventType, replaced: !!replaceTarget, cases: reportCases });
   }
 
   // ---- 版本字段适配（共享实现，见 version-adapt.mjs）----
