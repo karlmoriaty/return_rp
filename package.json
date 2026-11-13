@@ -1,6 +1,6 @@
 {
   "name": "return_rp",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "private": false,
   "type": "module",
   "description": "Screenshot reconstruction, RP/1 compilation, and native Axure RP tooling",
@@ -300,6 +300,7 @@
     "scripts/trace-ocr.swift",
     "scripts/trace.mjs",
     "scripts/trace.py",
+    "scripts/trim-to-single-page.mjs",
     "scripts/version-adapt.mjs",
     "scripts/version-capabilities.mjs",
     "scripts/version-fields.mjs",

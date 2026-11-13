@@ -16,6 +16,8 @@ import { renderLayout } from '../examples/render-layout.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const work = mkdtempSync(join(tmpdir(), 'return_rp-core-'));
+// Git checkout line endings differ per platform; hashes and rendered text must not.
+const readNormalized = path => readFileSync(path, 'utf8').replaceAll('\r\n', '\n');
 const results = [];
 function check(name, action) {
   try { action(); results.push({ name, passed: true }); console.log(`PASS  ${name}`); }
@@ -88,7 +90,7 @@ try {
   check('Axvg encoding selftest', () => assert.match(run('scripts/axvg.mjs', ['selftest']).stdout, /selftest OK/));
   check('published reference SVG matches the authored public specification', () => {
     const spec = JSON.parse(readFileSync(join(root, 'assets/dashboard-example.spec.json')));
-    assert.equal(readFileSync(join(root, 'assets/demo-layout.svg'), 'utf8'), renderLayout(spec));
+    assert.equal(readNormalized(join(root, 'assets/demo-layout.svg')), renderLayout(spec).replaceAll('\r\n', '\n'));
   });
   check('all published Markdown file links resolve within the release', () => {
     const paths = new Set(releasePaths());
@@ -98,7 +100,7 @@ try {
       for (const match of text.matchAll(/!?\[[^\]]*\]\(([^)]+)\)/g)) {
         const href = match[1].replace(/^<|>$/g, '').split('#')[0];
         if (!href || /^[a-zA-Z]+:/.test(href)) continue;
-        const destination = join(dirname(path), href);
+        const destination = join(dirname(path), href).replaceAll('\\', '/');
         assert.ok(paths.has(destination), `${path}: ${href}`);
       }
     }
@@ -147,7 +149,7 @@ try {
   check('source baseline fingerprints match every registered script', () => {
     const baseline = JSON.parse(readFileSync(join(root, 'test/baseline-shas.json')));
     for (const [file, hash] of Object.entries(baseline))
-      assert.equal(createHash('sha256').update(readFileSync(join(root, 'scripts', file))).digest('hex'), hash, file);
+      assert.equal(createHash('sha256').update(readNormalized(join(root, 'scripts', file))).digest('hex'), hash, file);
     assert.equal(Object.keys(baseline).length, readdirSync(join(root, 'scripts')).filter(f => f.endsWith('.mjs')).length);
   });
 } finally { rmSync(work, { recursive: true, force: true }); }

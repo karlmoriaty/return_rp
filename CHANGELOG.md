@@ -1,7 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 2026-11-13
 
+- 版本能力矩阵改为双向对齐（`SYMMETRIC_PARITY`）：任一版本已支持的能力，另一版本不能再是 `unsupported`；新增 `partial` 状态与 `DOCUMENTED_GAPS` 缺口台账，测试同时校验矩阵、台账与源码中的诊断文案。
+- Studio 局部 RP/1 创作支持 RP 11：片段按当前文档 `target` 包装，`target` 与文档不一致时明确报错；RP 9 / RP 11 共用同一套校验与事务。
+- 自动 Axure 预览接受 RP 11 目标，仍要求 macOS，并继续用独立预览端口做归属校验。
+- 修复发布包缺口：跟踪 `scripts/trim-to-single-page.mjs`（空白工程裁剪的实际实现），移除空的 `scripts/build-rp1.mjs`；`package.json` 发布清单同步。
+- 修复 Windows 路径守卫：`AXURE_WRITE_ROOT` / `AXURE_PROTECTED_PATHS` 改用 `path.delimiter` 分隔（盘符不再被误当分隔符），物理消解支持盘符与正斜杠；发布包与链接检查在 Windows 上恢复通过。
+- Studio 实例登记文件改用系统临时目录（`os.tmpdir()`），不再依赖 `/tmp`；Chrome / Chromium 探测补充 Windows 安装路径，设计质量测试可在 Windows 走真实截图口径。
+- 基线指纹与 SVG 比对按统一换行（LF）计算，`core.autocrlf` 不同的检出不再因 CRLF / LF 误报；`release-manifest.json` 的路径统一使用 `/`。
 - 归档整理文档：8 份带日期的历史记录移入 `docs/history/` 并建立索引；`HANDOFF.md` 与 `DELIVERY.md` 合并为 `docs/history/handoff.md`，两份 10 月试用报告合并为 `docs/history/trial-reports-2026-10.md`；同步修正引用链接、`package.json` 发布清单与 `release-manifest.json`。当前技术文档不变。
 
 ## 1.1.2 — 2026-11-13

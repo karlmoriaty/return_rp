@@ -2,6 +2,7 @@ import { StudioSelections } from './selection.mjs';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { canonicalJson, computeContentHash, sha256 } from './document.mjs';
 import { resolveDocumentScene, RENDERER_VERSION } from './scene-resolver.mjs';
@@ -31,7 +32,7 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEB_DIR = join(HERE, 'web');
-const INSTANCE_REGISTRY_PATH = '/tmp/return_rp-studio-instances.json';
+const INSTANCE_REGISTRY_PATH = join(tmpdir(), 'return_rp-studio-instances.json');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

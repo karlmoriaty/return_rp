@@ -3,6 +3,12 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+const WINDOWS_CHROME = [
+  process.env.PROGRAMFILES && join(process.env.PROGRAMFILES, 'Google/Chrome/Application/chrome.exe'),
+  process.env['PROGRAMFILES(X86)'] && join(process.env['PROGRAMFILES(X86)'], 'Google/Chrome/Application/chrome.exe'),
+  process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, 'Google/Chrome/Application/chrome.exe'),
+].filter(Boolean);
+
 const CHROME_CANDIDATES = [
   process.env.CHROME_BIN,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -11,6 +17,7 @@ const CHROME_CANDIDATES = [
   '/usr/bin/google-chrome-stable',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser',
+  ...WINDOWS_CHROME,
 ].filter(Boolean);
 
 export function findChromeExecutable() {

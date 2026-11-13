@@ -42,7 +42,7 @@ function fail(code, message, details = {}) {
   throw Object.assign(new Error(message), { code, ...details, diagnostic: { code, message, ...details } });
 }
 
-function parseSource(source, pageId) {
+function parseSource(source, pageId, target = 9) {
   if (typeof source !== 'string' || !source.trim()) fail('E_RP1_SOURCE_EMPTY', 'source 必须是非空 RP/1 节点片段');
   if (Buffer.byteLength(source) > SOURCE_LIMIT) fail('E_RP1_SOURCE_SIZE', '单次 RP/1 片段不能超过 512 KiB');
   const lines = source.split(/\r?\n/);
@@ -50,7 +50,7 @@ function parseSource(source, pageId) {
   if (!significant.length) fail('E_RP1_SOURCE_EMPTY', 'RP/1 片段只有注释，没有节点');
   const full = /^rp\/1(?:\s|$)/.test(significant[0].trim());
   const indent = full ? 0 : Math.min(...significant.map(line => line.length - line.trimStart().length));
-  const wrapped = full ? source : `rp/1 target=9\npage #${pageId}\n${lines.map(line => '  ' + line.slice(Math.min(indent, line.length))).join('\n')}`;
+  const wrapped = full ? source : `rp/1 target=${target}\npage #${pageId}\n${lines.map(line => '  ' + line.slice(Math.min(indent, line.length))).join('\n')}`;
   const shift = span => span ? { line: Math.max(1, span.line - (full ? 0 : 2)), column: Math.max(1, span.column - (full ? 0 : 2) + indent) } : null;
   const proc = spawnSync('python3', ['-B', '-c', PARSE, SCRIPTS], { input: wrapped, encoding: 'utf8', timeout: 10000, maxBuffer: 8 * 1024 * 1024 });
   if (proc.error || proc.status !== 0) fail('E_RP1_PARSER', 'RP/1 解析器未能完成；请检查 Python 与片段大小', { cause: proc.error?.message || proc.stderr?.slice(0, 1000) });
@@ -71,7 +71,7 @@ function parseSource(source, pageId) {
   for (const key of Object.keys(spec)) {
     if (!['language', 'target', 'pages'].includes(key)) fail('E_RP1_SOURCE_UNSUPPORTED', `局部创作不接受顶层 ${key}；请通过现有文档命令修改共享定义`, { field: key, ...locate('/' + key) });
   }
-  if (spec.target !== undefined && spec.target !== 9) fail('E_RP1_SOURCE_UNSUPPORTED', '局部 Studio RP/1 入口当前只接受 target=9');
+  if (spec.target !== undefined && spec.target !== target) fail('E_RP1_SOURCE_UNSUPPORTED', `局部 Studio RP/1 片段的 target=${spec.target} 与当前文档 target=${target} 不一致`);
   if (!Array.isArray(spec.pages) || spec.pages.length !== 1 || spec.pages[0].id !== pageId) fail('E_RP1_SOURCE_PAGE', `片段只能修改指定页面 ${pageId}`);
   for (const key of Object.keys(spec.pages[0])) {
     if (!['id', 'root'].includes(key)) fail('E_RP1_SOURCE_UNSUPPORTED', `局部片段不修改页面属性 ${key}`, { field: key, ...locate('/pages/0/' + key) });
@@ -238,7 +238,9 @@ export function prepareRp1Commands({ doc, source, pageId, parentId = null, mode,
   if (!doc || !Array.isArray(doc.pages)) fail('E_RP1_DOCUMENT', '需要当前权威 Studio 文档');
   if (!['insert', 'update'].includes(mode)) fail('E_RP1_SOURCE_MODE', 'sourceMode 必须明确选择 insert 或 update');
   if (!pageId || !(doc.pages || []).some(page => page.id === pageId)) fail('E_RP1_SOURCE_PAGE', '必须指定当前文档中的 pageId');
-  const parsed = parseSource(source, pageId);
+  const target = Number(doc.target || 9);
+  if (![9, 11].includes(target)) fail('E_RP1_SOURCE_UNSUPPORTED', `Studio 文档 target=${doc.target} 不受支持；只接受 9 或 11`);
+  const parsed = parseSource(source, pageId, target);
   const { root, locate } = parsed;
   const records = nodeRecords(root);
   const ids = new Set();

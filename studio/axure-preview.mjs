@@ -16,7 +16,9 @@ async function axurePorts() {
 // Opens only a new, owned export. A fresh preview server is mandatory so an old
 // tab or an unrelated document can never supply a passing native result.
 export async function prepareAxurePreview(doc, directory, { projectDir = null } = {}) {
-  if (process.platform !== 'darwin' || Number(doc.target || 9) !== 9) throw Object.assign(new Error('自动 Axure 预览需要 macOS 与目标版本为 Axure RP 9 的工程'), { code: 'E_AXURE_HOST_UNAVAILABLE' });
+  const target = Number(doc.target || 9);
+  if (![9, 11].includes(target)) throw Object.assign(new Error(`自动 Axure 预览只接受目标版本 9 或 11，收到 ${doc.target}`), { code: 'E_AXURE_HOST_UNAVAILABLE' });
+  if (process.platform !== 'darwin') throw Object.assign(new Error('自动 Axure 预览需要 macOS（RP 9 / RP 11 共用同一 GUI 往返）'), { code: 'E_AXURE_HOST_UNAVAILABLE' });
   mkdirSync(directory, { recursive: true });
   const before = await axurePorts();
   const source = join(directory, 'scenario-source.rp');
@@ -28,7 +30,7 @@ export async function prepareAxurePreview(doc, directory, { projectDir = null } 
     owned = join(directory, `scenario-host-${Date.now()}-${attempt}.rp`);
     copyFileSync(source, owned);
     try {
-      host = await run('/usr/bin/swift', [join(scriptsDir, 'gui-roundtrip.swift'), owned, '9', 'preview'], { timeout: 45000 });
+      host = await run('/usr/bin/swift', [join(scriptsDir, 'gui-roundtrip.swift'), owned, String(target), 'preview'], { timeout: 45000 });
       attempts.push({ owned, passed: true, stdout: host.stdout, stderr: host.stderr });
       break;
     } catch (error) {

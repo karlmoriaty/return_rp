@@ -104,6 +104,18 @@ function seeded() {
   return store;
 }
 
+test('Studio RP/1 fragments follow the document target and reject cross-target fixtures', () => {
+  for (const target of [9, 11]) {
+    const doc = { ...createEmptyStudioDocument(), target };
+    const prepared = prepareRp1Commands({ doc, source: 'label #fresh "Fresh"', mode: 'insert', pageId: 'home' });
+    assert.equal(prepared.commands.length, 1);
+    const other = target === 9 ? 11 : 9;
+    assert.throws(
+      () => prepareRp1Commands({ doc, source: `rp/1 target=${other}\npage #home\n  label #other "Nope"`, mode: 'insert', pageId: 'home' }),
+      error => error.code === 'E_RP1_SOURCE_UNSUPPORTED' && error.message.includes(`target=${other}`));
+  }
+});
+
 test('RP/1 inserts flow/hug/visual styles and interactions through the existing undoable Store', () => {
   const store = seeded();
   assert.equal(node(store, 'lesson').layout, 'column');

@@ -2,6 +2,7 @@ import { SCENARIO_STEP_SCHEMA } from './runtime.mjs';
 import { BROWSER_SCENARIO_STEP_SCHEMA } from './scenario-executors.mjs';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { startStudioServer } from './server.mjs';
 import { describeAuthoring, AUTHORING_ENTRY } from './authoring-help.mjs';
 import { VALID_COMMAND_TYPES } from './commands.mjs';
@@ -14,7 +15,7 @@ import {
   compareProjectWithBundle,
 } from './project-bundle.mjs';
 
-const INSTANCE_REGISTRY_PATH = '/tmp/return_rp-studio-instances.json';
+const INSTANCE_REGISTRY_PATH = join(tmpdir(), 'return_rp-studio-instances.json');
 /** projectDir(绝对路径) -> { kind: 'local', studio } | { kind: 'remote', url } */
 const inProcessServers = new Map();
 

@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { constants, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, readdirSync, renameSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path';
+import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listCommands } from './registry.mjs';
 import { assertNotProtected, assertWritable, AxureSession } from './engine.mjs';
@@ -1126,7 +1126,7 @@ export function generatePrototype({ spec: inputSpec, source: sourcePathArg, sour
     if (typeof requestedOutput !== 'string' || !requestedOutput.trim()) {
       throw new Error('output 必须是有效的 .rp 路径。');
     }
-    const defaultRoot = (process.env.AXURE_WRITE_ROOT || '').split(':').filter(Boolean)[0] || process.cwd();
+    const defaultRoot = (process.env.AXURE_WRITE_ROOT || '').split(delimiter).filter(Boolean)[0] || process.cwd();
     let effectiveRequestedOutput = requestedOutput;
     if (requestedOutput === 'auto') {
       const baseDir = resolvedSourceFile ? dirname(resolvedSourceFile) : defaultRoot;

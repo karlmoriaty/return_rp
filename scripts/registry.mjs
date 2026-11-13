@@ -5,13 +5,13 @@
 // 用作库：import { listCommands, getCommand, findCommandByScript } from './registry.mjs'
 // 用作 CLI：node registry.mjs dump | validate | table
 import { existsSync, readdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SCRIPTS_DIR = dirname(fileURLToPath(import.meta.url));
 
 // 受保护成品（硬规则）：任何参数解析为该绝对路径时拒绝执行；本 CLI 本无路径参数，纯防御。
-function protectedPaths() { return [process.env.AXURE_PROTECTED_PATH, ...(process.env.AXURE_PROTECTED_PATHS || '').split(':')].filter(Boolean).map(p => resolve(p)); }
+function protectedPaths() { return [process.env.AXURE_PROTECTED_PATH, ...(process.env.AXURE_PROTECTED_PATHS || '').split(delimiter)].filter(Boolean).map(p => resolve(p)); }
 
 // evidence 枚举 = 盘点实际使用的六级；internal 仅用于无 CLI 入口的库脚本。
 const EVIDENCE_LEVELS = ['structure', 'loaded', 'preview', 'gui-roundtrip', 'channel-a', 'internal'];
@@ -326,7 +326,12 @@ const LIB_SCRIPTS = [
   },
   {
     "script": "version-capabilities.mjs",
-    "summary": "RP 9 / RP 11 工具能力矩阵（RP9 ≥ RP11），供对齐测试与文档生成消费，无 CLI 入口",
+    "summary": "RP 9 / RP 11 工具能力矩阵（双向对齐 + 缺口台账），供对齐测试与文档生成消费，无 CLI 入口",
+    "evidence": "internal"
+  },
+  {
+    "script": "trim-to-single-page.mjs",
+    "summary": "把官方培训模板裁成单页空白工程；移除多余页面与面板状态记录，供 create-blank-project 调用",
     "evidence": "internal"
   },
   {

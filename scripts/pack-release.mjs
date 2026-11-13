@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, constants } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { assertWritable } from './engine.mjs';
 import { listCommands } from './registry.mjs';
@@ -43,7 +43,7 @@ export function packRelease(destination) {
     const target = join(output, path);
     mkdirSync(dirname(target), { recursive: true });
     copyFileSync(join(ROOT, path), target, constants.COPYFILE_EXCL);
-    files[relative(output, target)] = createHash('sha256').update(readFileSync(target)).digest('hex');
+    files[relative(output, target).split(sep).join('/')] = createHash('sha256').update(readFileSync(target)).digest('hex');
   }
   const manifest = { version: JSON.parse(readFileSync(join(ROOT, 'package.json'))).version,
     commands: listCommands().length, mcpTools: listMcpTools().length + jobTools.length, files };

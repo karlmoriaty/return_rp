@@ -1,17 +1,19 @@
 // RP 9 / RP 11 工具能力对齐检查。
 //
-// 规则（用户口径）：RP 9 能做的必须多于或等于 RP 11。
-//   - RP 11 标记 supported 的能力，RP 9 必须是 supported 或 explicit-diagnostic；
-//   - explicit-diagnostic 必须在源码里留有可搜索的拒绝文案；
-//   - RP 9 独有能力（表单状态样式、中继器、面板注册链、Studio 局部创作、自动预览、
-//     图片离线生成）必须保留，不能被后续 RP 11 改动顺手删掉。
+// 规则（1.2.0 起的双向口径）：
+//   - 任一版本 supported 的能力，另一版本不能是 unsupported；
+//   - 所有缺口必须登记在 DOCUMENTED_GAPS，并与矩阵状态一致；
+//   - explicit-diagnostic / partial 必须在源码里留有可搜索的文案；
+//   - 之前只在 RP 9 侧存在的能力（表单状态样式、中继器、面板注册链、Studio 局部创作、
+//     自动预览、图片离线生成）必须有同等或更高级别的登记，不能被后续改动顺手删掉。
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  VERSION_FEATURES, FEATURE_STATUSES, PARITY_RULE,
-  rp9ParityViolations, rp9ExclusiveFeatures, DIAGNOSTIC_EVIDENCE, featureById,
+  VERSION_FEATURES, FEATURE_STATUSES, PARITY_RULE, DOCUMENTED_GAPS,
+  rp9ParityViolations, rp11ParityViolations, parityViolations, documentedGaps,
+  DIAGNOSTIC_EVIDENCE, featureById,
 } from '../scripts/version-capabilities.mjs';
 import { DEFAULT_VERSION, supportedVersions } from '../scripts/version.mjs';
 
@@ -22,7 +24,7 @@ const ok = (name, fn) => {
   catch (error) { console.log(`FAIL  ${name} — ${error.message}`); process.exitCode = 1; throw error; }
 };
 
-ok('parity rule is RP9_SUPERSET_OF_RP11', () => assert.equal(PARITY_RULE, 'RP9_SUPERSET_OF_RP11'));
+ok('parity rule is SYMMETRIC_PARITY', () => assert.equal(PARITY_RULE, 'SYMMETRIC_PARITY'));
 
 ok('feature ids are unique', () => {
   const ids = VERSION_FEATURES.map(item => item.id);
@@ -37,35 +39,51 @@ ok('every feature uses a known status for both versions', () => {
   }
 });
 
-ok('RP 9 is a superset of RP 11 (no silent RP 9 gap)', () => {
-  const violations = rp9ParityViolations();
-  assert.deepEqual(violations.map(item => `${item.id} (rp11=${item.rp11}, rp9=${item.rp9})`), []);
+ok('no capability is unsupported on either side', () => {
+  const unsupported = VERSION_FEATURES.filter(item => item.rp9 === 'unsupported' || item.rp11 === 'unsupported');
+  assert.deepEqual(unsupported.map(item => item.id), []);
 });
 
-ok('explicit diagnostics are documented and implemented', () => {
-  for (const item of VERSION_FEATURES) {
-    if (item.rp9 !== 'explicit-diagnostic') continue;
-    assert.ok(item.note, `${item.id}: explicit-diagnostic 必须写 note`);
-    const evidence = DIAGNOSTIC_EVIDENCE[item.id];
-    assert.ok(evidence, `${item.id}: 缺少 DIAGNOSTIC_EVIDENCE`);
-    const source = readFileSync(join(ROOT, evidence.file), 'utf8');
-    assert.ok(source.includes(evidence.text), `${item.id}: ${evidence.file} 里找不到「${evidence.text}」`);
+ok('parity has no two-way violations', () => {
+  assert.deepEqual(rp9ParityViolations().map(item => `${item.id} (rp11=${item.rp11}, rp9=${item.rp9})`), []);
+  assert.deepEqual(rp11ParityViolations().map(item => `${item.id} (rp9=${item.rp9}, rp11=${item.rp11})`), []);
+  assert.deepEqual(parityViolations().map(item => item.id), []);
+});
+
+ok('documented gaps match the matrix exactly', () => {
+  const keys = documentedGaps().map(gap => gap.key).sort();
+  assert.deepEqual(keys, Object.keys(DOCUMENTED_GAPS).sort());
+  for (const gap of documentedGaps()) {
+    const entry = DOCUMENTED_GAPS[gap.key];
+    assert.equal(entry.status, gap.status, `${gap.key}: 状态与矩阵不一致`);
+    assert.ok(entry.reason && entry.reason.length > 0, `${gap.key}: 缺少 reason`);
   }
 });
 
-ok('diagnostic evidence has no orphan entries', () => {
-  for (const id of Object.keys(DIAGNOSTIC_EVIDENCE)) {
+ok('diagnostic evidence is present in source and never orphaned', () => {
+  for (const [key, evidence] of Object.entries(DIAGNOSTIC_EVIDENCE)) {
+    const [id, version = 'rp9'] = key.split(':');
+    const gapKey = `${id}:${version}`;
     const item = featureById(id);
-    assert.ok(item, `DIAGNOSTIC_EVIDENCE.${id} 没有对应能力项`);
-    assert.equal(item.rp9, 'explicit-diagnostic', `${id}: 有诊断证据但不是 explicit-diagnostic`);
+    assert.ok(item, `${key}: 没有对应能力项`);
+    assert.ok(['explicit-diagnostic', 'partial'].includes(item[version]), `${key}: 有诊断证据但状态是 ${item[version]}`);
+    assert.ok(DOCUMENTED_GAPS[gapKey], `${key}: 有诊断证据但未登记为缺口`);
+    const source = readFileSync(join(ROOT, evidence.file), 'utf8');
+    assert.ok(source.includes(evidence.text), `${key}: ${evidence.file} 里找不到「${evidence.text}」`);
+  }
+  for (const gap of documentedGaps()) {
+    if (!['explicit-diagnostic', 'partial'].includes(gap.status)) continue;
+    assert.ok(DIAGNOSTIC_EVIDENCE[gap.key] || DIAGNOSTIC_EVIDENCE[gap.id], `${gap.key}: ${gap.status} 缺少 DIAGNOSTIC_EVIDENCE`);
   }
 });
 
-ok('RP 9 exclusive capabilities are retained', () => {
-  const ids = new Set(rp9ExclusiveFeatures().map(item => item.id));
+ok('RP 9 legacy capabilities keep an equal-or-better RP 11 registration', () => {
   for (const id of ['native-form-state-styles', 'native-repeater', 'panel-registry',
     'studio-rp1-local', 'axure-preview', 'offline-image-generate']) {
-    assert.ok(ids.has(id), `RP 9 独有能力丢失：${id}`);
+    const item = featureById(id);
+    assert.ok(item, `能力丢失：${id}`);
+    assert.equal(item.rp9, 'supported', `${id}: RP 9 侧必须保持 supported`);
+    assert.ok(['supported', 'partial', 'explicit-diagnostic', 'gui-only', 'not-applicable'].includes(item.rp11), `${id}: RP 11 侧状态 ${item.rp11} 未登记`);
   }
 });
 

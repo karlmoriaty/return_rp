@@ -1,6 +1,6 @@
 # 能力与验证边界
 
-**RP 9 / RP 11 版本口径：** RP 9 是完整基线，RP 9 可用的能力必须多于或等于 RP 11；RP 11 独有且 RP 9 无原生结构的动作会在写入前明确诊断，不静默降级。逐项矩阵与验证命令见 [RP9 / RP11 能力对齐](../docs/version-parity.md)。
+**RP 9 / RP 11 版本口径：** 双向对齐——任一版本能做的能力，另一版本不能是 `unsupported`；缺口必须登记（`partial` / `explicit-diagnostic` / `gui-only` / `not-applicable`），并在运行时告警或写入前明确诊断，不静默降级。逐项矩阵与验证命令见 [RP9 / RP11 能力对齐](../docs/version-parity.md)。
 
 **2026-11-03 公开源码更新：** 本批包含Studio交互/主题/导入、原生多页批量装配与阶段进度、tab-bar对齐和GUI失败清理等修复。使用入口见[Studio与AI创作指南](../docs/studio-ai-authoring.md)；适用边界保留，下方记录为对应样本的实现与验证历史。
 
