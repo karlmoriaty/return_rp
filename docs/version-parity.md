@@ -53,6 +53,7 @@
 
 ```sh
 node test/version-parity-check.mjs
+node test/parity-check.mjs                     # 对拍、安全与 65 个内核脚本 baseline（LF 归一化）
 node test/native-repeater-versions-check.mjs   # 需本机 Axure 安装与 Python Pillow，缺依赖时 SKIP
 node test/native-form-style-versions-check.mjs # 同上
 node test/repeater-action-parity-check.mjs     # removeAll / comboType / rowIndices 两版对齐

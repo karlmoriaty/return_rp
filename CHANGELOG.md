@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.4 — 2026-11-14
+
+- 收尾版本：版本能力矩阵中已无任一方向 `unsupported`，RP 9 / RP 11 的自动预览、图片离线生成、中继器动作、表单状态样式、Studio 局部创作和 CLI / MCP 入口均按同一接口提供。
+- 预览文档补齐平台边界：Windows 宿主会如实区分「保存命令已执行」与「文件实际写入」，未修改文档被 Axure 跳过写盘时不再记为保存成功。
+- `docs/version-parity.md` 的验证清单加入 `test/parity-check.mjs`，跨平台 baseline 校验与其余对齐检查一起作为发布门禁。
+- 发布包与分享包重新生成，manifest 覆盖 Windows 宿主脚本与预览测试。
+
 ## 1.3.3 — 2026-11-14
 
 - 修复 `test/parity-check.mjs` 在 Windows 上整批误报内核脚本 SHA 不符：baseline 按 LF 归一化后的源码内容比对，二进制对拍仍用原始字节。
